@@ -2,6 +2,32 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Setup
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Copy `.env.example` to `.env` and configure your API credentials:
+   ```bash
+   cp .env.example .env
+   ```
+4. Edit `.env` and set your `REACT_APP_API_DEPLOYMENT_ID`
+
+## Project Structure
+
+- **`src/constants.js`** - Centralized configuration for tabs, labels, form text, and session types
+- **`src/components/`** - React UI components
+- **`src/hooks/`** - Custom React hooks for business logic
+- **`src/contexts/`** - React contexts for global state
+- **`src/integrations/`** - External API integration
+- **`src/utils/`** - Helper utilities
+
+### Internationalization
+
+All user-facing strings are centralized in `src/constants.js`. To change labels or add translations:
+1. Open `src/constants.js`
+2. Modify the appropriate constant (e.g., `FORM_LABELS`, `TAB_LABELS`)
+3. The changes will automatically apply throughout the application
+
 ## Available Scripts
 
 In the project directory, you can run:

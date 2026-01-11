@@ -3,8 +3,16 @@
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 15vmin;
   pointer-events: none;
+}
+
+.App-logo.spin {
+  animation: App-logo-spin infinite 20s linear;
+}
+
+.App-logo.no-spin {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -14,13 +22,13 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: black;
+  min-height: 20vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(5px + 1vmin);
   color: white;
 }
 
@@ -36,3 +44,34 @@
     transform: rotate(360deg);
   }
 }
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.main-menu {
+  background-color: #555;       /* Dark grey background */
+  border: 2px solid black;      /* Black border around the menu */
+  padding: 10px;                /* Space inside the menu */
+  display: flex;                /* Align buttons horizontally */
+  justify-content: center;     /* Center the buttons */
+  gap: 15px;                    /* Space between buttons */
+}
+

@@ -1,0 +1,35 @@
+export function findMatchingRegistrationEntry(registration, traineeRegistrations) {
+  console.log("findMatchingRegistrationEntry: looking for match for registration:", registration);
+  console.log("findMatchingRegistrationEntry: in traineeRegistrations:", traineeRegistrations);
+
+  const sameCalendarDay = (a, b) => {
+    if (!(a instanceof Date) || !(b instanceof Date)) return false;
+    if (isNaN(a) || isNaN(b)) return false;
+    return a.getFullYear() === b.getFullYear() &&
+           a.getMonth() === b.getMonth() &&
+           a.getDate() === b.getDate();
+  };
+
+  return traineeRegistrations.find(entry =>
+    entry.firstName === registration.firstName &&
+    entry.lastName === registration.lastName &&
+    entry.ageGroup === registration.ageGroup &&
+    entry.sessionName === registration.sessionName &&
+    sameCalendarDay(entry.date, registration.dates)
+  );
+}
+
+export function insertDate(sortedDates, newDate) {
+  let left = 0;
+  let right = sortedDates.length;
+  while (left < right) {
+    const mid = Math.floor((left + right) / 2);
+    if (sortedDates[mid] < newDate) {
+      left = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+  sortedDates.splice(left, 0, newDate);
+  return sortedDates;
+}
