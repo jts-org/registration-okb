@@ -7,7 +7,7 @@ import useSettings from './hooks/useSettings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
 import { TABS, TAB_LABEL_TO_KEY, SESSION_OPTIONS } from './constants';
-import { getCamps } from './integrations/Api';
+import { getCamps, getSessions } from './integrations/Api';
 
 const tabs = Object.values(TABS);
 
@@ -19,6 +19,49 @@ function App() {
 
   const [trainingSessionOptions, setTrainingSessionOptions] = useState(SESSION_OPTIONS);
 
+  // Helpers: local date handling and label derivation
+  const toLocalYMD = (dateLike) => new Date(dateLike).toLocaleDateString('en-CA');
+  const isValidDate = (d) => !Number.isNaN(d.valueOf());
+
+  const deriveCampLabels = (data, todayLocal) => {
+    const labels = [];
+    (Array.isArray(data) ? data : []).forEach(row => {
+      if (!Array.isArray(row)) return;
+      // Row schema: [id, type, name, coach, date1, count1, date2, count2, ...]
+      const campName = row[2];
+      const rest = row.slice(4);
+      for (let i = 0; i + 1 < rest.length; i += 2) {
+        const dateStr = rest[i];
+        const count = Number(rest[i + 1]) || 0;
+        const parsed = new Date(dateStr);
+        const parsedLocal = toLocalYMD(parsed);
+        if (isValidDate(parsed) && parsedLocal === todayLocal) {
+          for (let k = 1; k <= count; k++) labels.push(`${campName} SESSIO ${k}`);
+        }
+      }
+    });
+    return labels;
+  };
+
+  const deriveSessionLabels = (data, todayLocal) => {
+    const labels = [];
+    (Array.isArray(data) ? data : []).forEach(row => {
+      if (!Array.isArray(row)) return;
+      // Row schema: [id, type, name, startDate, endDate, ...]
+      const courseName = row[2];
+      const startStr = row[3];
+      const endStr = row[4];
+      const startDate = new Date(startStr);
+      const endDate = new Date(endStr);
+      const start = toLocalYMD(startDate);
+      const end = toLocalYMD(endDate);
+      if (isValidDate(startDate) && isValidDate(endDate)) {
+        if (todayLocal >= start && todayLocal <= end) labels.push(courseName);
+      }
+    });
+    return labels;
+  };
+
   const onActiveTabChange = async (tab) => {
     const mappedTab = TAB_LABEL_TO_KEY[tab] || tab;
     if (mappedTab === TABS.TRAINING_SESSION) {
@@ -26,30 +69,21 @@ function App() {
         setLoading(true);
         const resp = await getCamps();
         const body = resp instanceof Response ? await resp.json() : resp;
-        let data = body.data;
-        const todayLocal = new Date().toLocaleDateString('en-CA');
-        const labels = [];
-        (Array.isArray(data) ? data : []).forEach(row => {
-          const isArr = Array.isArray(row);
-          if (!isArr) return;
-          // Indices: [id, type, name, coach, date1, count1, date2, count2, ...]
-          const campName = row[2];
-          const rest = row.slice(4);
-          for (let i = 0; i + 1 < rest.length; i += 2) {
-            const dateStr = rest[i];
-            const count = Number(rest[i + 1]) || 0;
-            const parsed = new Date(dateStr);
-            const parsedLocal = parsed.toLocaleDateString('en-CA');
-            const isValid = !Number.isNaN(parsed.valueOf());
-            if (isValid && parsedLocal === todayLocal) {
-              for (let k = 1; k <= count; k++) labels.push(`${campName} SESSIO ${k}`);
-            }
-          }
-        });
-        console.log('Derived training session labels for today:', labels);
-        setTrainingSessionOptions(labels.length ? labels : SESSION_OPTIONS);
+        const data = body.data;
+        const todayLocal = toLocalYMD(new Date());
+        const campLabels = deriveCampLabels(data, todayLocal);
+        if (campLabels.length > 1) {
+          setTrainingSessionOptions([...(Array.isArray(campLabels) ? campLabels : []), ...SESSION_OPTIONS]);
+        } else {
+          // Fallback: fetch regular sessions and include those active today
+          const sResp = await getSessions();
+          const sBody = sResp instanceof Response ? await sResp.json() : sResp;
+          const sData = sBody.data;
+          const sessionLabels = deriveSessionLabels(sData, todayLocal);
+          setTrainingSessionOptions([...(Array.isArray(sessionLabels) ? sessionLabels : []), ...SESSION_OPTIONS]);
+        }
       } catch (e) {
-        console.error('Error prefetching camps:', e);
+        console.error('Error deriving session options:', e);
         setTrainingSessionOptions(SESSION_OPTIONS);
       } finally {
         setLoading(false);

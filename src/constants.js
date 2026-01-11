@@ -27,7 +27,6 @@ export const TAB_LABEL_TO_KEY = {
 
 // Session types
 export const SESSION_TYPES = {
-  ADVANCED_GROUP: 'Jatkoryhmä',
   FREE_SPARRING: 'Vapaa/sparri',
 };
 
