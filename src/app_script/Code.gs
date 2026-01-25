@@ -47,7 +47,7 @@ function doPost(e) {
 
   return ContentService
     .createTextOutput(jsonResponse)
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
 }
 
 function doGet(e) {
@@ -76,7 +76,13 @@ function doGet(e) {
 
   return ContentService
     .createTextOutput(JSON.stringify(jsonResponse))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+}
+
+function doOptions(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify(''))
+    .setMimeType(ContentService.MimeType.TEXT)
 }
 
 function formatDates(dates) {
@@ -142,6 +148,16 @@ function getTraineeRegistrations() {
   return registrations;
 }
 
+function getCoachRegistrations() {
+  var ss = SpreadsheetApp.openById(sheetId);
+  var sheet = ss.getSheetByName(coachesSheetName);
+  var rows = sheet.getDataRange().getValues();
+  Logger.log(rows);
+  var registrations = rows.slice(1);
+  Logger.log(registrations);
+  return registrations;
+}
+
 function getSessions() {
   var ss = SpreadsheetApp.openById(sheetId);
   var sheet = ss.getSheetByName(sessionsSheetName);
@@ -152,11 +168,10 @@ function getSessions() {
 }
 
 function getCamps() {
-  var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheetByName(campsSheetName);
-  var rows = sheet.getDataRange().getValues();
-  Logger.log(rows);  
-  var camps = rows.slice(1);
+  const ss = SpreadsheetApp.openById(sheetId);
+  const sheet = ss.getSheetByName(campsSheetName);
+  const rows = sheet.getDataRange().getValues();
+  const camps = rows.slice(1);
   return normalizeDatesInArray(camps);
 }
 
@@ -185,7 +200,6 @@ function addCoach(holder) {
     id,
     holder.firstName,
     holder.lastName,
-    holder.expertise,
     holder.sessionName,
     ...formattedDates
   ]);

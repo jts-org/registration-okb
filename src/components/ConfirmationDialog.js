@@ -1,4 +1,4 @@
-import { FORM_LABELS } from "../constants";
+import { TRAINEE_SESSION_REGISTRATION_FORM_LABELS } from "../constants";
 
 function ConfirmationDialog({data, onConfirm, onCancel}) {
   console.log('data', data);
@@ -8,8 +8,8 @@ function ConfirmationDialog({data, onConfirm, onCancel}) {
         <div style={styles.dialog}>
           {data}
           <div style={styles.buttonGroup}>
-            <button onClick={onConfirm}>{FORM_LABELS.OK}</button>
-            <button onClick={onCancel}>{FORM_LABELS.CANCEL}</button>
+            <button onClick={onConfirm}>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.OK}</button>
+            <button onClick={onCancel}>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.CANCEL}</button>
           </div>
         </div>
       </div>

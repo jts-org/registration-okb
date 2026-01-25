@@ -1,16 +1,16 @@
-import { useRef, useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
-import ToggleButtons from "./common/ToggleButtons";
 import DatePicker from './common/DatePicker';
 import ConfirmationDialog from './ConfirmationDialog';
-import useRegisterTrainingSessionForm from '../hooks/useRegisterTrainingSessionForm';
-import useTraineeRegistrations from '../hooks/useTraineeRegistrations';
-import { TAB_LABELS, SESSION_OPTIONS, AGE_GROUP_OPTIONS, TRAINEE_SESSION_REGISTRATION_FORM_LABELS } from '../constants';
-import '../App.css';
+import useRegisterCoachingSessionForm from '../hooks/useRegisterCoachingSessionForm';
+import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS } from '../constants';
+import useCoachRegistrations from '../hooks/useCoachRegistrations';
+import ToggleButtons from './common/ToggleButtons';
 
 const tabs = [TAB_LABELS.MAIN];
 
-function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS }) {
+function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_SESSION_OPTIONS, viewAsCoach = false }) {
+  console.log("RegisterCoachingSession rendered with coachingSessionOptions:", coachingSessionOptions);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const handleFirstNameChange = e => setFirstName(e.target.value);
@@ -21,41 +21,35 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
     onSelect(option);
   };
 
-
-  const { onNewTraineeRegistration, isLoading: registrationsLoading } = useTraineeRegistrations();
+  const { onNewCoachRegistration, isLoading: registrationsLoading } = useCoachRegistrations();
 
   const onCreate = (sessionRegistrationData) => {
-
-    onNewTraineeRegistration(sessionRegistrationData);
+    onNewCoachRegistration(sessionRegistrationData);
   };
 
   const {
     sessionButtonRef,
-    ageGroupButtonRef,
     formInitialized,
     selectedSession,
-    selectedAgeGroup,
     selectedDate,
     showConfirmationDialog,
     sessionRegistrationData,
     handleSessionButtonClicked,
-    handleAgeGroupButtonClicked,
     handleDateSelected,
     handleSubmitRegistration,
     handleConfirmed,
     handleCancelled,
-  } = useRegisterTrainingSessionForm(sessionOptions, AGE_GROUP_OPTIONS, onCreate);
+  } = useRegisterCoachingSessionForm(coachingSessionOptions, onCreate);
 
   const isFormValid =
     firstName.trim() !== '' &&
     lastName.trim() !== '' &&
-    !!selectedSession &&
-    !!selectedAgeGroup;  
+    !!selectedSession;
 
   if (!formInitialized) {
     return (
       <div style={{ position: 'relative' }}>
-        <div>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.PROCESSING}</div>
+        <div>{COACH_SESSION_REGISTRATION_FORM_LABELS.PROCESSING}</div>
         {registrationsLoading && (
           <div style={{
             position: 'fixed',
@@ -66,8 +60,8 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(255,255,255,0.6)',
-            zIndex: 2000
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            zIndex: 2000,
           }}>
             <CircularProgress />
           </div>
@@ -75,9 +69,8 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
       </div>
     );
   }
-
   return (
-    <div className="training-session-container">
+    <div className="coaching-session-container">
       <div className="main-menu">
         <ToggleButtons
           onClick={handleTabClick}
@@ -90,42 +83,31 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
         />
         <br />
       </div>      
-      <h2>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.TRAINEE_REGISTRATION_TITLE}</h2>
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_TRAINING_GROUP}</h3>
+      <h2>{COACH_SESSION_REGISTRATION_FORM_LABELS.COACH_REGISTRATION_TITLE}</h2>
+      <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SELECT_COACHING_SESSION}</h3>
       <ToggleButtons
         onClick={handleSessionButtonClicked}
-        buttonsGroup={sessionOptions}
+        buttonsGroup={coachingSessionOptions}
         buttonRef={sessionButtonRef}
         selected={selectedSession}
       />
       <br />
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_AGE_GROUP}</h3>
-      <ToggleButtons
-        onClick={handleAgeGroupButtonClicked}
-        buttonsGroup={AGE_GROUP_OPTIONS}
-        buttonRef={ageGroupButtonRef}
-        selected={selectedAgeGroup}
-      />
+      <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SESSION_DATE}</h3>
+      <label htmlFor="date">{COACH_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
+      <DatePicker id="date" selectedDate={selectedDate} onDateChange={handleDateSelected} />
       <br />
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SESSION_DATE}</h3>
-      <label htmlFor="date">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
-      <DatePicker
-        onDateChange={handleDateSelected}
-        selectedDate={selectedDate}
-      />
-      <br />
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FULL_NAME}</h3>
+      <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.FULL_NAME}</h3>
       <form onSubmit={handleSubmitRegistration}>
-        <label htmlFor="fname">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
+        <label htmlFor="fname">{COACH_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
         <input type="text" id="fname" name="fname" required onChange={handleFirstNameChange} />
         <br />
-        <label htmlFor="lname">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.LAST_NAME}</label>
+        <label htmlFor="lname">{COACH_SESSION_REGISTRATION_FORM_LABELS.LAST_NAME}</label>
         <input type="text" id="lname" name="lname" required onChange={handleLastNameChange} />
         <br /><br />
         <br /><br />
         <ToggleButtons
           onClick={() => {}}
-          buttonsGroup={[TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SUBMIT]}
+          buttonsGroup={[COACH_SESSION_REGISTRATION_FORM_LABELS.SUBMIT]}
           single={true}
           buttonRef={null}
           sx={{
@@ -140,29 +122,30 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
       </form>
       {showConfirmationDialog && <ConfirmationDialog data={
         <div>
-          <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SUMMARY}</h3>
-          <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.TRAINING_GROUP}</label>
+          <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SUMMARY}</h3>
+          <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.TRAINING_GROUP}</label>
           <b>{sessionRegistrationData.sessionName}</b>
           <br />
-          <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.AGE_GROUP}</label>
+          <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.AGE_GROUP}</label>
           <b>{sessionRegistrationData.ageGroup}</b>
           <br />
-          <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
+          <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
           <b>{sessionRegistrationData.dates ? sessionRegistrationData.dates.toLocaleDateString?.() || sessionRegistrationData.dates : '-'}</b>
           <br />
-          <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
+          <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
           <b>{sessionRegistrationData.firstName}</b>
           <br />
-          <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.LAST_NAME}</label>
+          <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.LAST_NAME}</label>
           <b>{sessionRegistrationData.lastName}</b>
           <br /><br />
         </div>
       }
         onConfirm={handleConfirmed}
         onCancel={handleCancelled} />
-      }
+      }      
+      {/* Additional form fields and submission logic would go here */}
     </div>
   );
 }
 
-export default RegisterTrainingSession;
+export default RegisterCoachingSession;

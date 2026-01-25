@@ -33,3 +33,16 @@ export function insertDate(sortedDates, newDate) {
   sortedDates.splice(left, 0, newDate);
   return sortedDates;
 }
+
+export function dateStringToDate(dateStr) {
+    const d = new Date(dateStr);
+    return isNaN(d) ? null : d;
+};
+
+export function isValidDate(d) {
+  return isNaN(d);
+}
+
+export function getLocalDate() {
+  return new Date().toLocaleDateString('en-CA');
+}

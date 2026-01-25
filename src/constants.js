@@ -36,8 +36,14 @@ export const AGE_GROUPS = {
   MINOR: 'alle 18-vuotias',
 };
 
+export const COACHING_SESSIONS_TYPES = {
+  ADVANCED: 'JATKO',
+  FITNESS: 'KUNTO',
+  BASIC: 'PERUS',
+};
+
 // Form labels (Finnish)
-export const FORM_LABELS = {
+export const TRAINEE_SESSION_REGISTRATION_FORM_LABELS = {
   TRAINEE_REGISTRATION_TITLE: 'Harrastajan rekisteröityminen treenisessioon',
   SELECT_TRAINING_GROUP: 'Valitse harjoitusryhmä',
   SELECT_AGE_GROUP: 'Valitse ikäryhmä',
@@ -55,6 +61,22 @@ export const FORM_LABELS = {
   CANCEL: 'Peruuta',
 };
 
+export const COACH_SESSION_REGISTRATION_FORM_LABELS = {
+  COACH_REGISTRATION_TITLE: 'Vetäjän rekisteröityminen valmennussessioon',
+  SELECT_COACHING_SESSION: 'Valitse ryhmä',
+  SESSION_DATE: 'Treenisession päivämäärä:',
+  DATE_LABEL: 'Päivämäärä:',
+  FULL_NAME: 'Etu- ja sukunimesi:',
+  FIRST_NAME: 'Etunimi:',
+  LAST_NAME: 'Sukunimi:',
+  SUBMIT: 'Ilmoittaudu',
+  SUMMARY: 'Yhteenveto:',
+  TRAINING_GROUP: 'Harjoitusryhmä:',
+  PROCESSING: 'Prosessoidaan...',
+  OK: 'OK',
+  CANCEL: 'Peruuta',
+};
+
 // Menu options
 export const MAIN_MENU_OPTIONS = [
   TAB_LABELS.TRAINING_SESSIONS,
@@ -67,3 +89,6 @@ export const SESSION_OPTIONS = Object.values(SESSION_TYPES);
 
 // Age group options array
 export const AGE_GROUP_OPTIONS = Object.values(AGE_GROUPS);
+
+// Coaching session types array
+export const COACHING_SESSION_OPTIONS = Object.values(COACHING_SESSIONS_TYPES);

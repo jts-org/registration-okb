@@ -2,11 +2,12 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import logo from './logo_new_reversed_colors.png';
 import './App.css';
 import MainMenu from './components/MainMenu';
+import RegisterCoachingSession from './components/RegisterCoachingSession';
 import RegisterTrainingSession from './components/RegisterTrainingSession';
 import useSettings from './hooks/useSettings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
-import { TABS, TAB_LABEL_TO_KEY, SESSION_OPTIONS } from './constants';
+import { TABS, TAB_LABEL_TO_KEY, COACHING_SESSION_OPTIONS, SESSION_OPTIONS } from './constants';
 import { getCamps, getSessions } from './integrations/Api';
 
 const tabs = Object.values(TABS);
@@ -18,6 +19,8 @@ function App() {
   const prevTabRef = useRef(activeTab);
 
   const [trainingSessionOptions, setTrainingSessionOptions] = useState(SESSION_OPTIONS);
+  const [coachingSessionOptions, setCoachingSessionOptions] = useState([...COACHING_SESSION_OPTIONS, ...SESSION_OPTIONS]);
+  console.log("coachingSessionOptions:", coachingSessionOptions);
 
   // Helpers: local date handling and label derivation
   const toLocalYMD = (dateLike) => new Date(dateLike).toLocaleDateString('en-CA');
@@ -124,6 +127,7 @@ function App() {
         </header>
         {activeTab === TABS.MAIN && <MainMenu selected={activeTab} onSelect={onActiveTabChange} />}
         {activeTab === TABS.TRAINING_SESSION && <RegisterTrainingSession onSelect={onActiveTabChange} sessionOptions={trainingSessionOptions} />}
+        {activeTab === TABS.COACH && <RegisterCoachingSession onSelect={onActiveTabChange} coachingSessionOptions={coachingSessionOptions} viewAsCoach={true} />}
         {/* Optionally render content based on activeTab here */}
         {globalIsLoading && (
           <div style={{
