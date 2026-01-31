@@ -4,6 +4,8 @@ import './App.css';
 import MainMenu from './components/MainMenu';
 import RegisterCoachingSession from './components/RegisterCoachingSession';
 import RegisterTrainingSession from './components/RegisterTrainingSession';
+import AdminView from './components/AdminView';
+import PasswordDialog from './components/PasswordDialog';
 import useSettings from './hooks/useSettings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
@@ -20,6 +22,9 @@ function App() {
 
   const [trainingSessionOptions, setTrainingSessionOptions] = useState(SESSION_OPTIONS);
   const [coachingSessionOptions, setCoachingSessionOptions] = useState([...COACHING_SESSION_OPTIONS, ...SESSION_OPTIONS]);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [pendingTab, setPendingTab] = useState(null); // Track which protected tab user is trying to access
   console.log("coachingSessionOptions:", coachingSessionOptions);
 
   // Helpers: local date handling and label derivation
@@ -67,6 +72,15 @@ function App() {
 
   const onActiveTabChange = async (tab) => {
     const mappedTab = TAB_LABEL_TO_KEY[tab] || tab;
+    
+    // Show password dialog when coach or admin tab is selected
+    if (mappedTab === TABS.COACH || mappedTab === TABS.ADMIN) {
+      setPendingTab(mappedTab);
+      setShowPasswordDialog(true);
+      setPasswordError('');
+      return; // Don't change tab yet, wait for password verification
+    }
+    
     if (mappedTab === TABS.TRAINING_SESSION) {
       try {
         setLoading(true);
@@ -118,6 +132,38 @@ function App() {
     return () => { mounted = false; };
   }, [activeTab, reloadSettings]);
 
+  // Handle password confirmation for coach/admin access
+  const handlePasswordConfirm = (enteredPassword) => {
+    // Get the correct password based on pending tab
+    const expectedPassword = pendingTab === TABS.ADMIN 
+      ? settings?.admin?.password 
+      : settings?.coach?.password;
+    
+    if (enteredPassword === expectedPassword) {
+      setShowPasswordDialog(false);
+      setPasswordError('');
+      setActiveTab(pendingTab);
+      setPendingTab(null);
+    } else {
+      setPasswordError('Väärä salasana');
+      // Return to main view after a brief moment
+      setTimeout(() => {
+        setShowPasswordDialog(false);
+        setPasswordError('');
+        setActiveTab(TABS.MAIN);
+        setPendingTab(null);
+      }, 1500);
+    }
+  };
+
+  // Handle password dialog cancel
+  const handlePasswordCancel = () => {
+    setShowPasswordDialog(false);
+    setPasswordError('');
+    setPendingTab(null);
+    setActiveTab(TABS.MAIN);
+  };
+
   return (
       <div className="App">
         <header className="App-header">
@@ -128,6 +174,18 @@ function App() {
         {activeTab === TABS.MAIN && <MainMenu selected={activeTab} onSelect={onActiveTabChange} />}
         {activeTab === TABS.TRAINING_SESSION && <RegisterTrainingSession onSelect={onActiveTabChange} sessionOptions={trainingSessionOptions} />}
         {activeTab === TABS.COACH && <RegisterCoachingSession onSelect={onActiveTabChange} coachingSessionOptions={coachingSessionOptions} viewAsCoach={true} />}
+        {activeTab === TABS.ADMIN && <AdminView onSelect={onActiveTabChange} />}
+        
+        {/* Password Dialog for Coach/Admin Access */}
+        {showPasswordDialog && (
+          <PasswordDialog
+            onConfirm={handlePasswordConfirm}
+            onCancel={handlePasswordCancel}
+            error={passwordError}
+            isAdmin={pendingTab === TABS.ADMIN}
+          />
+        )}
+        
         {/* Optionally render content based on activeTab here */}
         {globalIsLoading && (
           <div style={{

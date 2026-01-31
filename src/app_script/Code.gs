@@ -128,55 +128,43 @@ function normalizeDatesInArray(rows) {
   );
 }
 
+/**
+ * Get cached spreadsheet instance to avoid repeated openById calls
+ */
+function getSpreadsheet() {
+  return SpreadsheetApp.openById(sheetId);
+}
+
+/**
+ * Helper to get sheet data (excluding header row)
+ */
+function getSheetData(sheetName) {
+  const sheet = getSpreadsheet().getSheetByName(sheetName);
+  return sheet.getDataRange().getValues().slice(1);
+}
+
 function getSettings() {
-  var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheetByName(settingsSheetName);
-  var rows = sheet.getDataRange().getValues();
-  Logger.log(rows);
-  var settings = rows.slice(1);
-  Logger.log(settings);
-  return settings;  
+  return getSheetData(settingsSheetName);
 }
 
 function getTraineeRegistrations() {
-  var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheetByName(traineesSheetName);
-  var rows = sheet.getDataRange().getValues();
-  Logger.log(rows);
-  var registrations = rows.slice(1);
-  Logger.log(registrations);
-  return registrations;
+  return getSheetData(traineesSheetName);
 }
 
 function getCoachRegistrations() {
-  var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheetByName(coachesSheetName);
-  var rows = sheet.getDataRange().getValues();
-  Logger.log(rows);
-  var registrations = rows.slice(1);
-  Logger.log(registrations);
-  return registrations;
+  return getSheetData(coachesSheetName);
 }
 
 function getSessions() {
-  var ss = SpreadsheetApp.openById(sheetId);
-  var sheet = ss.getSheetByName(sessionsSheetName);
-  var rows = sheet.getDataRange().getValues();
-  Logger.log(rows);  
-  var sessions = rows.slice(1);
-  return sessions;
+  return getSheetData(sessionsSheetName);
 }
 
 function getCamps() {
-  const ss = SpreadsheetApp.openById(sheetId);
-  const sheet = ss.getSheetByName(campsSheetName);
-  const rows = sheet.getDataRange().getValues();
-  const camps = rows.slice(1);
-  return normalizeDatesInArray(camps);
+  return normalizeDatesInArray(getSheetData(campsSheetName));
 }
 
 function addTrainee(holder) {
-  const sheet = SpreadsheetApp.openById(sheetId).getSheetByName(traineesSheetName);
+  const sheet = getSpreadsheet().getSheetByName(traineesSheetName);
   const id = sheet.getLastRow() + 1;
   const formattedDates = formatDates(holder.dates);
 
@@ -192,7 +180,7 @@ function addTrainee(holder) {
 }
 
 function addCoach(holder) {
-  const sheet = SpreadsheetApp.openById(sheetId).getSheetByName(coachesSheetName);
+  const sheet = getSpreadsheet().getSheetByName(coachesSheetName);
   const id = sheet.getLastRow() + 1;
   const formattedDates = formatDates(holder.dates);
 
@@ -207,9 +195,9 @@ function addCoach(holder) {
 }
 
 function updateTrainee(holder) {
-  const sheet = SpreadsheetApp.openById(sheetId).getSheetByName(traineesSheetName);
-  const data = sheet.getDataRange().getValues(); // Get all data
-  const targetId = holder.id;              // The id you're looking for
+  const sheet = getSpreadsheet().getSheetByName(traineesSheetName);
+  const data = sheet.getDataRange().getValues();
+  const targetId = holder.id;
   const formattedDates = formatDates(holder.dates);
   const columnsToUpdate = [
     holder.id,
@@ -230,4 +218,97 @@ function updateTrainee(holder) {
   }
 
   return 0;
+}
+
+function generateOver18_JATKO() { generateReport("JATKO", true); }
+function generateOver18_KUNTO() { generateReport("KUNTO", true); }
+function generateOver18_PEKU() { generateReport("PEKU", true); }
+function generateOver18_VAPAASPARRI() { generateReport("VAPAA/SPARRI", true); }
+function generateUnder18_JATKO() { generateReport("JATKO", false); }
+function generateUnder18_KUNTO() { generateReport("KUNTO", false); }
+function generateUnder18_PEKU() { generateReport("PEKU", false); }
+function generateUnder18_VAPAASPARRI() { generateReport("VAPAA/SPARRI", false); }
+function generateUnder18_LEIRI() { generateReport("LEIRI", false); }
+
+
+/**
+ * Normalisoi päivämäärän muotoon YYYY-MM-DD
+ */
+function normalizeDate(d) {
+  if (!(d instanceof Date)) d = new Date(d);
+  return Utilities.formatDate(d, "Europe/Helsinki", "yyyy-MM-dd");
+}
+
+/**
+ * Unified report generator for both over 18 and under 18 trainees
+ * Optimized to batch all writes for better performance
+ * @param {string} sessionType - session type, e.g. "JATKO" or "KUNTO"
+ * @param {boolean} isOver18 - true for 18+ vuotias, false for alle 18-vuotias
+ */
+function generateReport(sessionType, isOver18) {
+  const ss = SpreadsheetApp.getActive();
+  const traineesSheet = ss.getSheetByName("trainees");
+  const agePrefix = isOver18 ? "over" : "under";
+  const ageFilter = isOver18 ? "18+ vuotias" : "alle 18-vuotias";
+  const sheetName = `trainees_${agePrefix}_18_${sessionType.toLowerCase()}`.replace(/\//g, "");
+  const targetSheet = ss.getSheetByName(sheetName);
+
+  // 1. Read and filter trainees data
+  const lastRow = traineesSheet.getLastRow();
+  if (lastRow < 2) return;
+  
+  const traineesData = traineesSheet.getRange(2, 1, lastRow - 1, 6).getValues();
+  const filtered = traineesData.filter(r => r[3] === ageFilter && r[4] === sessionType);
+
+  // 2. Calculate statistics
+  const uniqueNames = [...new Set(filtered.map(r => r[2] + " " + r[1]))].sort();
+  const totalRows = filtered.length;
+
+  // 3. Process dates
+  const traineeDates = filtered.map(r => normalizeDate(r[5])).filter(Boolean);
+  const parsedDates = [...new Set(traineeDates)]
+    .map(d => new Date(d))
+    .sort((a, b) => a - b);
+  
+  const months = parsedDates.map(d => d.getMonth() + 1);
+  const days = parsedDates.map(d => d.getDate());
+  const parsedDateStrings = parsedDates.map(d => normalizeDate(d));
+
+  // 4. Build person-dates map
+  const personDates = {};
+  filtered.forEach(r => {
+    const name = r[2] + " " + r[1];
+    const dateStr = normalizeDate(r[5]);
+    if (!personDates[name]) personDates[name] = [];
+    personDates[name].push(dateStr);
+  });
+
+  // 5. Build output data matrix (names + X marks) for batch write
+  const startRow = 6;
+  const numCols = Math.max(parsedDateStrings.length + 1, 1);
+  const outputData = uniqueNames.map(name => {
+    const row = [name];
+    const dates = personDates[name] || [];
+    parsedDateStrings.forEach(dateStr => {
+      row.push(dates.includes(dateStr) ? "X" : "");
+    });
+    return row;
+  });
+
+  // 6. Clear old content once
+  const clearRows = Math.max(targetSheet.getLastRow() - startRow + 1, 1);
+  targetSheet.getRange(startRow, 1, clearRows, 200).clearContent();
+
+  // 7. Batch write all data
+  targetSheet.getRange("C3").setValue(uniqueNames.length);
+  targetSheet.getRange("F3").setValue(totalRows);
+
+  if (months.length > 0) {
+    targetSheet.getRange(4, 2, 1, months.length).setValues([months]);
+    targetSheet.getRange(5, 2, 1, days.length).setValues([days]);
+  }
+
+  if (outputData.length > 0) {
+    targetSheet.getRange(startRow, 1, outputData.length, numCols).setValues(outputData);
+  }
 }

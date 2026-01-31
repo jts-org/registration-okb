@@ -27,7 +27,7 @@ export const TAB_LABEL_TO_KEY = {
 
 // Session types
 export const SESSION_TYPES = {
-  FREE_SPARRING: 'Vapaa/sparri',
+  FREE_SPARRING: 'VAPAA/SPARRI',
 };
 
 // Age groups
