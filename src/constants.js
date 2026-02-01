@@ -39,7 +39,7 @@ export const AGE_GROUPS = {
 export const COACHING_SESSIONS_TYPES = {
   ADVANCED: 'JATKO',
   FITNESS: 'KUNTO',
-  BASIC: 'PERUS',
+  BASIC: 'PEKU',
 };
 
 // Form labels (Finnish)

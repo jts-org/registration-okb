@@ -27,12 +27,10 @@ export default function useSettings() {
     try {
       const fetched = await getSettings('settings');
       const body = fetched instanceof Response ? await fetched.json() : fetched;
-      console.log('Fetched settings:', body);
 
       const admin = mapAdminSettingsDataToObject(body.data || []);
       const coach = mapCoachSettingsDataToObject(body.data || []);
       const mapped = { admin, coach };
-      console.log('Mapped settings:', mapped);
       setSettings(mapped);
       return mapped;
     } catch (error) {

@@ -10,7 +10,6 @@ import ToggleButtons from './common/ToggleButtons';
 const tabs = [TAB_LABELS.MAIN];
 
 function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_SESSION_OPTIONS, viewAsCoach = false }) {
-  console.log("RegisterCoachingSession rendered with coachingSessionOptions:", coachingSessionOptions);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const handleFirstNameChange = e => setFirstName(e.target.value);

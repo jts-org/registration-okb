@@ -32,6 +32,22 @@ function doPost(e) {
       } else if (operation === "update") {
         id = updateCoach(holder);
       }
+    } else if (role === "camp") {
+      if (operation === "add") {
+        id = addCamp(holder);
+      } else if (operation === "update") {
+        id = updateCamp(holder);
+      } else if (operation === "delete") {
+        id = deleteCamp(holder);
+      }
+    } else if (role === "session") {
+      if (operation === "add") {
+        id = addSession(holder);
+      } else if (operation === "update") {
+        id = updateSession(holder);
+      } else if (operation === "delete") {
+        id = deleteSession(holder);
+      }
     } else {
       result = "error";
     }
@@ -44,6 +60,10 @@ function doPost(e) {
     result: result,
     id: id || null
   });
+
+  if (role === "coach" && id != null) {
+    generateCoachMonthlyStats();
+  }
 
   return ContentService
     .createTextOutput(jsonResponse)
@@ -194,6 +214,177 @@ function addCoach(holder) {
   return id;
 }
 
+/**
+ * Add a new camp
+ * @param {Object} holder - Camp data object
+ * @param {string} holder.name - Camp name (will be uppercased)
+ * @param {string} holder.teacher - Teacher/coach name
+ * @param {Array} holder.days - Array of {date: 'YYYY-MM-DD', sessions: number}
+ */
+function addCamp(holder) {
+  const sheet = getSpreadsheet().getSheetByName(campsSheetName);
+  const id = sheet.getLastRow() + 1;
+  
+  // Build row: [id, "camp", NAME, teacher, date1, sessions1, date2, sessions2, ...]
+  const row = [
+    id,
+    "camp",
+    (holder.name || "").toUpperCase(),
+    holder.teacher || ""
+  ];
+  
+  // Add day/session pairs
+  const days = holder.days || [];
+  days.forEach(day => {
+    if (day.date) {
+      row.push(formatDates(day.date)[0]);
+      row.push(Number(day.sessions) || 0);
+    }
+  });
+  
+  sheet.appendRow(row);
+  return id;
+}
+
+/**
+ * Update an existing camp
+ * @param {Object} holder - Camp data object with id
+ */
+function updateCamp(holder) {
+  const sheet = getSpreadsheet().getSheetByName(campsSheetName);
+  const data = sheet.getDataRange().getValues();
+  const targetId = Number(holder.id);
+  
+  // Build row data
+  const row = [
+    targetId,
+    "camp",
+    (holder.name || "").toUpperCase(),
+    holder.teacher || ""
+  ];
+  
+  // Add day/session pairs
+  const days = holder.days || [];
+  days.forEach(day => {
+    if (day.date) {
+      row.push(formatDates(day.date)[0]);
+      row.push(Number(day.sessions) || 0);
+    }
+  });
+  
+  // Find the row with matching ID
+  for (let i = 0; i < data.length; i++) {
+    if (Number(data[i][0]) === targetId) {
+      const rowIndex = i + 1; // Sheet rows are 1-based
+      // Clear the entire row first (to handle variable number of day columns)
+      const lastCol = sheet.getLastColumn();
+      if (lastCol > 0) {
+        sheet.getRange(rowIndex, 1, 1, lastCol).clearContent();
+      }
+      // Write new data
+      sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
+      return targetId;
+    }
+  }
+  
+  return 0; // Not found
+}
+
+/**
+ * Delete a camp by ID
+ * @param {Object} holder - Object containing id to delete
+ */
+function deleteCamp(holder) {
+  const sheet = getSpreadsheet().getSheetByName(campsSheetName);
+  const data = sheet.getDataRange().getValues();
+  const targetId = Number(holder.id);
+  
+  // Find the row with matching ID
+  for (let i = 0; i < data.length; i++) {
+    if (Number(data[i][0]) === targetId) {
+      const rowIndex = i + 1; // Sheet rows are 1-based
+      sheet.deleteRow(rowIndex);
+      return targetId;
+    }
+  }
+  
+  return 0; // Not found
+}
+
+/**
+ * Add a new session
+ * @param {Object} holder - Session data object
+ * @param {string} holder.course - Course type (basic, advanced, fitness)
+ * @param {string} holder.name - Session name (will be uppercased)
+ * @param {string} holder.startDate - Start date YYYY-MM-DD
+ * @param {string} holder.endDate - End date YYYY-MM-DD
+ */
+function addSession(holder) {
+  const sheet = getSpreadsheet().getSheetByName(sessionsSheetName);
+  const id = sheet.getLastRow() + 1;
+  
+  const row = [
+    id,
+    holder.course || "",
+    (holder.name || "").toUpperCase(),
+    formatDates(holder.startDate)[0],
+    formatDates(holder.endDate)[0]
+  ];
+  
+  sheet.appendRow(row);
+  return id;
+}
+
+/**
+ * Update an existing session
+ * @param {Object} holder - Session data object with id
+ */
+function updateSession(holder) {
+  const sheet = getSpreadsheet().getSheetByName(sessionsSheetName);
+  const data = sheet.getDataRange().getValues();
+  const targetId = Number(holder.id);
+  
+  const row = [
+    targetId,
+    holder.course || "",
+    (holder.name || "").toUpperCase(),
+    formatDates(holder.startDate)[0],
+    formatDates(holder.endDate)[0]
+  ];
+  
+  // Find the row with matching ID
+  for (let i = 0; i < data.length; i++) {
+    if (Number(data[i][0]) === targetId) {
+      const rowIndex = i + 1; // Sheet rows are 1-based
+      sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
+      return targetId;
+    }
+  }
+  
+  return 0; // Not found
+}
+
+/**
+ * Delete a session by ID
+ * @param {Object} holder - Object containing id to delete
+ */
+function deleteSession(holder) {
+  const sheet = getSpreadsheet().getSheetByName(sessionsSheetName);
+  const data = sheet.getDataRange().getValues();
+  const targetId = Number(holder.id);
+  
+  // Find the row with matching ID
+  for (let i = 0; i < data.length; i++) {
+    if (Number(data[i][0]) === targetId) {
+      const rowIndex = i + 1; // Sheet rows are 1-based
+      sheet.deleteRow(rowIndex);
+      return targetId;
+    }
+  }
+  
+  return 0; // Not found
+}
+
 function updateTrainee(holder) {
   const sheet = getSpreadsheet().getSheetByName(traineesSheetName);
   const data = sheet.getDataRange().getValues();
@@ -311,4 +502,191 @@ function generateReport(sessionType, isOver18) {
   if (outputData.length > 0) {
     targetSheet.getRange(startRow, 1, outputData.length, numCols).setValues(outputData);
   }
+}
+
+function generateCoachMonthlyStats() {
+  const ss = SpreadsheetApp.getActive();
+  const coachesSheet = ss.getSheetByName("coaches");
+  const targetSheet = ss.getSheetByName("coaches_data");
+
+  // Tyhjennetään vanha sisältö
+  targetSheet.clear();
+
+  // Otsikkorivi: Coach | Total | 1 | 2 | ... | 12
+  const header = ["Coach", "Total"];
+  for (let m = 1; m <= 12; m++) header.push(m);
+  targetSheet.getRange(1, 1, 1, header.length).setValues([header]);
+
+  // Luetaan coaches-data
+  const data = coachesSheet.getRange(
+    2, 1, coachesSheet.getLastRow() - 1, 5
+  ).getValues();
+
+  // Map: { "Etunimi Sukunimi": { total: X, 1: count, 2: count, ... } }
+  const coachMap = {};
+
+  data.forEach(row => {
+    const first = row[1];
+    const last = row[2];
+    const date = row[4];
+
+    if (!first || !last || !date) return;
+
+    const name = `${first} ${last}`;
+    const month = new Date(date).getMonth() + 1;
+
+    if (!coachMap[name]) {
+      coachMap[name] = { total: 0 };
+      for (let m = 1; m <= 12; m++) coachMap[name][m] = 0;
+    }
+
+    coachMap[name][month]++;
+    coachMap[name].total++;
+  });
+
+  // Muodostetaan taulukko
+  const rows = [];
+  const sortedNames = Object.keys(coachMap).sort();
+
+  sortedNames.forEach(name => {
+    const row = [name, coachMap[name].total];
+    for (let m = 1; m <= 12; m++) {
+      row.push(coachMap[name][m]);
+    }
+    rows.push(row);
+  });
+
+  // Kirjoitetaan taulukko
+  if (rows.length > 0) {
+    targetSheet.getRange(2, 1, rows.length, header.length).setValues(rows);
+  }
+
+  // ------------------------------------------------------------
+  // LISÄTÄÄN YHTEENVETORIVI ALLE
+  // ------------------------------------------------------------
+
+  const summaryRow = ["TOTAL"];
+
+  // Lasketaan Total-sarake (kaikki valmentajat)
+  let totalOfTotals = 0;
+  sortedNames.forEach(name => {
+    totalOfTotals += coachMap[name].total;
+  });
+  summaryRow.push(totalOfTotals);
+
+  // Lasketaan kuukausisummat
+  for (let m = 1; m <= 12; m++) {
+    let monthSum = 0;
+    sortedNames.forEach(name => {
+      monthSum += coachMap[name][m];
+    });
+    summaryRow.push(monthSum);
+  }
+
+  // Kirjoitetaan yhteenvetorivi taulukon alle
+  const summaryRowIndex = rows.length + 2;
+  targetSheet.getRange(summaryRowIndex, 1, 1, summaryRow.length).setValues([summaryRow]);
+
+  // ------------------------------------------------------------
+  // VÄRIKOODAUS
+  // ------------------------------------------------------------
+
+  const lastRow = summaryRowIndex;
+  const lastCol = header.length;
+
+  // 1) Otsikkorivi harmaaksi
+  targetSheet.getRange(1, 1, 1, lastCol).setBackground("#e0e0e0");
+
+  // 2) Yhteenvetorivi harmaaksi
+  targetSheet.getRange(lastRow, 1, 1, lastCol).setBackground("#e0e0e0");
+
+  // 3) Solujen värikoodaus (punainen = 0, vihreä = >0)
+  const dataRange = targetSheet.getRange(2, 2, lastRow - 2, lastCol - 1);
+  const values = dataRange.getValues();
+  const backgrounds = [];
+
+  values.forEach(row => {
+    const bgRow = row.map(value => {
+      if (typeof value === "number" && value > 0) {
+        return "#ccffcc"; // vaalean vihreä
+      } else if (typeof value === "number" && value === 0) {
+        return "#ffcccc"; // hailakka punainen
+      } else {
+        return "white"; // nimi-sarake
+      }
+    });
+    backgrounds.push(bgRow);
+  });
+
+  dataRange.setBackgrounds(backgrounds);
+
+  // ------------------------------------------------------------------------
+  // LUODAAN AUTOMAATTINEN BAR CHART (ilman B-saraketta ja ilman TOTAL-riviä)
+  // ------------------------------------------------------------------------
+
+  // Poistetaan vanhat kaaviot
+  const charts = targetSheet.getCharts();
+  charts.forEach(chart => targetSheet.removeChart(chart));
+
+  // Selvitetään aktiiviset kuukaudet (kuukaudet joissa yhteenvetorivin arvo > 0)
+  const activeMonths = [];
+  for (let col = 3; col <= lastCol; col++) { // sarakkeet 3–14 = kuukaudet 1–12
+    const value = targetSheet.getRange(lastRow, col).getValue();
+    if (value > 0) activeMonths.push(col);
+  }
+
+  if (activeMonths.length === 0) return;
+
+  // Kuukausien nimet
+  const monthNames = [
+    "", "Tammi", "Helmi", "Maalis", "Huhti", "Touko", "Kesä",
+    "Heinä", "Elo", "Syys", "Loka", "Marras", "Joulu"
+  ];
+
+  // Rakennetaan datan alue kaaviolle:
+  // - Sarake 1 = Coach
+  // - Sarakkeet activeMonths = vain aktiiviset kuukaudet
+  // - EI saraketta 2 (Total)
+  // - EI viimeistä riviä (TOTAL)
+  const ranges = [
+    targetSheet.getRange(1, 1, lastRow - 1, 1) // Coach-nimet
+  ];
+
+  activeMonths.forEach(col => {
+    ranges.push(targetSheet.getRange(1, col, lastRow - 1, 1));
+  });
+
+  // Luodaan bar chart (vaakasuora pylväskaavio)
+  let chartBuilder = targetSheet.newChart()
+    .asBarChart()
+    .setChartType(Charts.ChartType.BAR)
+    .setOption("title", "Valmentajien kuukausittaiset treenimäärät (aktiiviset kuukaudet)")
+    .setOption("legend", { position: "top" })
+    .setOption("isStacked", false)
+    .setOption("hAxis", { title: "Treenimäärä" })
+    .setOption("vAxis", { title: "Valmentaja" });
+
+  // Lisätään datarange-alueet kaavioon
+  ranges.forEach((r, index) => {
+    chartBuilder.addRange(r);
+
+    // Ensimmäinen sarja on Coach-nimet → ei labelia
+    if (index >= 1) {
+      const monthIndex = activeMonths[index - 1] - 2; // sarake 3 = kuukausi 1
+      chartBuilder.setOption(`series.${index - 1}.labelInLegend`, monthNames[monthIndex]);
+    }
+  });
+
+  // Automaattinen koon säätö
+  const chartHeight = Math.max(300, sortedNames.length * 40);
+  const chartWidth = Math.max(600, activeMonths.length * 120);
+
+  chartBuilder = chartBuilder
+    .setOption("width", chartWidth)
+    .setOption("height", chartHeight)
+    .setPosition(lastRow + 2, 1, 0, 0);
+
+  // Lisätään kaavio
+  targetSheet.insertChart(chartBuilder.build());
+
 }

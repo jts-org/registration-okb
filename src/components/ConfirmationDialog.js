@@ -1,7 +1,6 @@
 import { TRAINEE_SESSION_REGISTRATION_FORM_LABELS } from "../constants";
 
 function ConfirmationDialog({data, onConfirm, onCancel}) {
-  console.log('data', data);
   return (
     <div className="confirmation-dialog">
       <div style={styles.overlay}>

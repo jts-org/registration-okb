@@ -1,7 +1,4 @@
 export function findMatchingRegistrationEntry(registration, traineeRegistrations) {
-  console.log("findMatchingRegistrationEntry: looking for match for registration:", registration);
-  console.log("findMatchingRegistrationEntry: in traineeRegistrations:", traineeRegistrations);
-
   const sameCalendarDay = (a, b) => {
     if (!(a instanceof Date) || !(b instanceof Date)) return false;
     if (isNaN(a) || isNaN(b)) return false;

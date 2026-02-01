@@ -17,7 +17,6 @@ export default function useTraineeRegistrations() {
     try {
       const response = await getRegistrations("trainee_registrations");
       const body = response instanceof Response ? await response.json() : response;
-      console.log('Fetched registrations:', body);
       const mappedTraineeRegistrationData = (body.data || []).map(entry => ({
         id: entry[0],
         firstName: entry[1],
@@ -27,7 +26,6 @@ export default function useTraineeRegistrations() {
         date: dateStringToDate(entry[5])
       }));
       setTraineeRegistrations(mappedTraineeRegistrationData);
-      console.log('Mapped trainee registrations:', mappedTraineeRegistrationData);
       return mappedTraineeRegistrationData;
     } finally {
       setIsLoading(false);
@@ -41,10 +39,9 @@ export default function useTraineeRegistrations() {
     try {
       const latest = await fetchFromServer();
       const source = Array.isArray(latest) ? latest : traineeRegistrations;
-      console.log("registerTraineeSession: using registrations for match:", source);
       let matchingEntry = findMatchingRegistrationEntry(sessionRegistrationData, source);
       if (matchingEntry) {
-        console.log('Registration already exists:', matchingEntry);
+        // Registration already exists - TODO: Implement update logic when needed
         // TODO: Implement update logic when needed
       } else {
         const id = await register(sessionRegistrationData, "trainee", "add");
@@ -64,7 +61,6 @@ export default function useTraineeRegistrations() {
   const fetchFromServer = useCallback(() => fetchTraineeRegistrationsFromServer(), [fetchTraineeRegistrationsFromServer]);
 
   function onNewTraineeRegistration(sessionRegistrationData) {
-    console.log("onNewTraineeRegistration: New trainee registration:", sessionRegistrationData);
     // fire-and-forget: let registerTraineeSession handle async work and errors
     registerTraineeSession(sessionRegistrationData).catch(err => console.error(err));
   }

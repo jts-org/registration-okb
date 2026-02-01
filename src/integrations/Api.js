@@ -80,4 +80,84 @@ const postRegistration = async (registrationData, role, operation) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, postRegistration };
+// Camp management functions
+const addCamp = async (campData) => {
+  try {
+    const payload = {
+      path: { role: 'camp', operation: 'add' },
+      data: campData
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error adding camp:', error);
+    throw error;
+  }
+};
+
+const updateCamp = async (campData) => {
+  try {
+    const payload = {
+      path: { role: 'camp', operation: 'update' },
+      data: campData
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error updating camp:', error);
+    throw error;
+  }
+};
+
+const deleteCamp = async (campId) => {
+  try {
+    const payload = {
+      path: { role: 'camp', operation: 'delete' },
+      data: { id: campId }
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error deleting camp:', error);
+    throw error;
+  }
+};
+
+// Session management functions
+const addSession = async (sessionData) => {
+  try {
+    const payload = {
+      path: { role: 'session', operation: 'add' },
+      data: sessionData
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error adding session:', error);
+    throw error;
+  }
+};
+
+const updateSession = async (sessionData) => {
+  try {
+    const payload = {
+      path: { role: 'session', operation: 'update' },
+      data: sessionData
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error updating session:', error);
+    throw error;
+  }
+};
+
+const deleteSession = async (sessionId) => {
+  try {
+    const payload = {
+      path: { role: 'session', operation: 'delete' },
+      data: { id: sessionId }
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error deleting session:', error);
+    throw error;
+  }
+};
+
+export { getSettings, getRegistrations, getSessions, getCamps, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession };

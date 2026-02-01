@@ -6,6 +6,7 @@ import RegisterCoachingSession from './components/RegisterCoachingSession';
 import RegisterTrainingSession from './components/RegisterTrainingSession';
 import AdminView from './components/AdminView';
 import PasswordDialog from './components/PasswordDialog';
+import Footer from './components/Footer';
 import useSettings from './hooks/useSettings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
@@ -25,7 +26,6 @@ function App() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [pendingTab, setPendingTab] = useState(null); // Track which protected tab user is trying to access
-  console.log("coachingSessionOptions:", coachingSessionOptions);
 
   // Helpers: local date handling and label derivation
   const toLocalYMD = (dateLike) => new Date(dateLike).toLocaleDateString('en-CA');
@@ -197,12 +197,14 @@ function App() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(255,255,255,0.6)',
+            background: 'rgba(10, 10, 15, 0.8)',
             zIndex: 2000
           }}>
             <CircularProgress />
           </div>
         )}
+        
+        <Footer />
       </div>
   );
 

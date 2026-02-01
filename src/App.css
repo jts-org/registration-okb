@@ -5,7 +5,9 @@
 .App {
   text-align: center;
   min-height: 100vh;
-  padding-bottom: var(--spacing-xxl);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
 }
 
 /* Header */
