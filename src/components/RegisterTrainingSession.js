@@ -10,6 +10,55 @@ import '../App.css';
 
 const tabs = [TAB_LABELS.MAIN];
 
+const ageInputStyles = {
+  container: {
+    marginTop: '1rem',
+    marginBottom: '0.5rem',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '0.5rem',
+    color: 'var(--color-text-secondary)',
+    fontSize: '0.95rem',
+  },
+  inputWrapper: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0',
+    background: 'var(--color-surface)',
+    borderRadius: '12px',
+    border: '1px solid var(--color-border)',
+    overflow: 'hidden',
+  },
+  spinButton: {
+    width: '48px',
+    height: '56px',
+    background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+    color: 'white',
+    border: 'none',
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'opacity 0.2s ease',
+  },
+  input: {
+    width: '80px',
+    height: '56px',
+    textAlign: 'center',
+    fontSize: '1.5rem',
+    fontWeight: '600',
+    border: 'none',
+    background: 'var(--color-background)',
+    color: 'var(--color-text-primary)',
+    outline: 'none',
+    MozAppearance: 'textfield',
+    WebkitAppearance: 'none',
+  },
+};
+
 function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -35,22 +84,27 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
     formInitialized,
     selectedSession,
     selectedAgeGroup,
+    selectedAge,
     selectedDate,
     showConfirmationDialog,
     sessionRegistrationData,
     handleSessionButtonClicked,
     handleAgeGroupButtonClicked,
+    handleAgeChange,
     handleDateSelected,
     handleSubmitRegistration,
     handleConfirmed,
     handleCancelled,
+    isMinor,
+    isAgeValid,
   } = useRegisterTrainingSessionForm(sessionOptions, AGE_GROUP_OPTIONS, onCreate);
 
   const isFormValid =
     firstName.trim() !== '' &&
     lastName.trim() !== '' &&
     !!selectedSession &&
-    !!selectedAgeGroup;  
+    !!selectedAgeGroup &&
+    isAgeValid;  
 
   if (!formInitialized) {
     return (
@@ -106,6 +160,38 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
         buttonRef={ageGroupButtonRef}
         selected={selectedAgeGroup}
       />
+      {isMinor && (
+        <div style={ageInputStyles.container}>
+          <label htmlFor="age" style={ageInputStyles.label}>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.AGE}</label>
+          <div style={ageInputStyles.inputWrapper}>
+            <button 
+              type="button"
+              style={ageInputStyles.spinButton}
+              onClick={() => handleAgeChange(Math.max(1, (parseInt(selectedAge) || 1) - 1).toString())}
+            >
+              −
+            </button>
+            <input
+              type="number"
+              id="age"
+              name="age"
+              min="1"
+              max="17"
+              value={selectedAge}
+              onChange={(e) => handleAgeChange(e.target.value)}
+              placeholder="—"
+              style={ageInputStyles.input}
+            />
+            <button 
+              type="button"
+              style={ageInputStyles.spinButton}
+              onClick={() => handleAgeChange(Math.min(17, (parseInt(selectedAge) || 0) + 1).toString())}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
       <br />
       <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SESSION_DATE}</h3>
       <label htmlFor="date">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
@@ -147,6 +233,13 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
           <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.AGE_GROUP}</label>
           <b>{sessionRegistrationData.ageGroup}</b>
           <br />
+          {sessionRegistrationData.age && (
+            <>
+              <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.AGE}</label>
+              <b>{sessionRegistrationData.age}</b>
+              <br />
+            </>
+          )}
           <label>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
           <b>{sessionRegistrationData.dates ? sessionRegistrationData.dates.toLocaleDateString?.() || sessionRegistrationData.dates : '-'}</b>
           <br />

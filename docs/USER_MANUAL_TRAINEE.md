@@ -53,6 +53,17 @@ Valitse ikäryhmäsi:
 - **18+ vuotias** - Täysi-ikäiset harrastajat
 - **alle 18-vuotias** - Alaikäiset harrastajat
 
+#### Iän syöttäminen (alle 18-vuotiaat)
+
+Jos valitset **"alle 18-vuotias"**, näkyviin tulee ikäsyöte:
+
+1. Näet modernin ikävalitsimen + ja − painikkeilla
+2. Käytä **+** painiketta nostaaksesi ikää
+3. Käytä **−** painiketta laskeaksesi ikää
+4. Voit myös kirjoittaa iän suoraan kenttään (1-17)
+
+**Huom:** Ikä on pakollinen tieto alle 18-vuotiaille. Ilmoittaudu-painike aktivoituu vasta kun ikä on syötetty.
+
 ### Vaihe 3: Tarkista päivämäärä
 
 Järjestelmä näyttää automaattisesti kuluvan päivän päivämäärän. Voit muuttaa päivämäärää tarvittaessa kalenterivalitsimesta.
@@ -71,6 +82,7 @@ Täytä seuraavat kentät:
 3. Näet yhteenvedon ilmoittautumisestasi:
    - Harjoitusryhmä
    - Ikäryhmä
+   - Ikä (jos alle 18-vuotias)
    - Päivämäärä
    - Etunimi
    - Sukunimi
@@ -119,4 +131,4 @@ Jos sinulla on kysyttävää järjestelmän käytöstä, ota yhteyttä:
 
 ---
 
-*Päivitetty: Tammikuu 2026*
+*Päivitetty: Helmikuu 2026*

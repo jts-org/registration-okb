@@ -104,8 +104,7 @@ Vetäjänä sinulla on pääsy Google Sheets -taulukkoon, jossa näet kaikki har
 | C | Sukunimi |
 | D | Ikäryhmä |
 | E | Harjoitusryhmä |
-| F | Päivämäärä |
-
+| F | Päivämäärä || G | Ikä (vain alle 18-vuotiaat) |
 ### Raportit
 
 Järjestelmä generoi automaattisesti raportteja eri harjoitusryhmille:
@@ -186,4 +185,4 @@ Jos sinulla on kysyttävää järjestelmän käytöstä:
 
 ---
 
-*Päivitetty: Tammikuu 2026*
+*Päivitetty: Helmikuu 2026*

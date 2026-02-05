@@ -10,18 +10,20 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
   const [selectedSession, setSelectedSession] = useState(
     Array.isArray(sessions) && sessions.length === 1 ? sessions[0] : null
   );
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState(ageGroups[1]);
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState(null);
+  const [selectedAge, setSelectedAge] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [sessionRegistrationData, setSessionRegistrationData] = useState({});
 
   const initializeForm = () => {
   setSelectedSession(Array.isArray(sessions) && sessions.length === 1 ? sessions[0] : null);
-    setSelectedAgeGroup(ageGroups[1]);
+    setSelectedAgeGroup(null);
+    setSelectedAge('');
     setSelectedDate(new Date().toISOString().split('T')[0]);
     setSessionRegistrationData({});
     setFormInitialized(true);
-    clearInputFields(['fname', 'lname']);
+    clearInputFields(['fname', 'lname', 'age']);
     setTimeout(() => {
       sessionButtonRef.current?.focus();
       ageGroupButtonRef.current?.focus();
@@ -33,8 +35,15 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
   }, [sessions]);
 
   const handleSessionButtonClicked = (option) => setSelectedSession(option);
-  const handleAgeGroupButtonClicked = (option) => setSelectedAgeGroup(option);
+  const handleAgeGroupButtonClicked = (option) => {
+    setSelectedAgeGroup(option);
+    // Clear age when switching away from under-18
+    if (option !== ageGroups[1]) {
+      setSelectedAge('');
+    }
+  };
   const handleDateSelected = (date) => setSelectedDate(date);
+  const handleAgeChange = (age) => setSelectedAge(age);
 
   const handleSubmitRegistration = (event) => {
     event.preventDefault();
@@ -45,9 +54,17 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
       sessionName: selectedSession,
       dates: stringToDate(selectedDate),
     };
+    // Add age only for under-18
+    if (selectedAgeGroup === ageGroups[1] && selectedAge) {
+      registrationData.age = parseInt(selectedAge, 10);
+    }
     setSessionRegistrationData(registrationData);
     setShowConfirmationDialog(true);
   };
+
+  // Check if form is valid - age required for under-18
+  const isMinor = selectedAgeGroup === ageGroups[1];
+  const isAgeValid = !isMinor || (selectedAge && parseInt(selectedAge, 10) >= 1 && parseInt(selectedAge, 10) <= 17);
 
   const handleConfirmed = () => {
     setShowConfirmationDialog(false);
@@ -64,14 +81,18 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
     formInitialized,
     selectedSession,
     selectedAgeGroup,
+    selectedAge,
     selectedDate,
     showConfirmationDialog,
     sessionRegistrationData,
     handleSessionButtonClicked,
     handleAgeGroupButtonClicked,
+    handleAgeChange,
     handleDateSelected,
     handleSubmitRegistration,
     handleConfirmed,
     handleCancelled,
+    isMinor,
+    isAgeValid,
   };
 }

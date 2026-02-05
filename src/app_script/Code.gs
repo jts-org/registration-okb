@@ -188,14 +188,21 @@ function addTrainee(holder) {
   const id = sheet.getLastRow() + 1;
   const formattedDates = formatDates(holder.dates);
 
-  sheet.appendRow([
+  const row = [
     id,
     holder.firstName,
     holder.lastName,
     holder.ageGroup,
     holder.sessionName,
     ...formattedDates
-  ]);
+  ];
+  
+  // Add age as last column if provided (for under-18)
+  if (holder.age !== undefined && holder.age !== null) {
+    row.push(holder.age);
+  }
+  
+  sheet.appendRow(row);
   return id;
 }
 
@@ -398,6 +405,11 @@ function updateTrainee(holder) {
     holder.sessionName,
     ...formattedDates    
   ];
+  
+  // Add age as last column if provided (for under-18)
+  if (holder.age !== undefined && holder.age !== null) {
+    columnsToUpdate.push(holder.age);
+  }
 
   // Find the row where the id matches
   for (let i = 0; i < data.length; i++) {
@@ -409,6 +421,17 @@ function updateTrainee(holder) {
   }
 
   return 0;
+}
+
+function generateAllTraineesReports() {
+  generateOver18_JATKO(); 
+  generateOver18_KUNTO(); 
+  generateOver18_PEKU(); 
+  generateOver18_VAPAASPARRI(); 
+  generateUnder18_JATKO(); 
+  generateUnder18_KUNTO(); 
+  generateUnder18_PEKU(); 
+  generateUnder18_VAPAASPARRI();
 }
 
 function generateOver18_JATKO() { generateReport("JATKO", true); }
@@ -449,29 +472,35 @@ function generateReport(sessionType, isOver18) {
   if (lastRow < 2) return;
   
   const traineesData = traineesSheet.getRange(2, 1, lastRow - 1, 6).getValues();
-  const filtered = traineesData.filter(r => r[3] === ageFilter && r[4] === sessionType);
+  const filtered = traineesData.filter(r => 
+    String(r[3]).trim() === ageFilter && 
+    String(r[4]).trim() === sessionType
+  );
 
   // 2. Calculate statistics
   const uniqueNames = [...new Set(filtered.map(r => r[2] + " " + r[1]))].sort();
-  const totalRows = filtered.length;
 
-  // 3. Process dates
-  const traineeDates = filtered.map(r => normalizeDate(r[5])).filter(Boolean);
-  const parsedDates = [...new Set(traineeDates)]
-    .map(d => new Date(d))
-    .sort((a, b) => a - b);
+  // 3. Process dates - collect unique dates only from filtered data
+  const dateSet = new Set();
+  filtered.forEach(r => {
+    const dateStr = normalizeDate(r[5]);
+    if (dateStr) dateSet.add(dateStr);
+  });
+  
+  // Convert to sorted array of date strings
+  const parsedDateStrings = [...dateSet].sort();
+  const parsedDates = parsedDateStrings.map(d => new Date(d));
   
   const months = parsedDates.map(d => d.getMonth() + 1);
   const days = parsedDates.map(d => d.getDate());
-  const parsedDateStrings = parsedDates.map(d => normalizeDate(d));
 
   // 4. Build person-dates map
   const personDates = {};
   filtered.forEach(r => {
     const name = r[2] + " " + r[1];
     const dateStr = normalizeDate(r[5]);
-    if (!personDates[name]) personDates[name] = [];
-    personDates[name].push(dateStr);
+    if (!personDates[name]) personDates[name] = new Set();
+    if (dateStr) personDates[name].add(dateStr);
   });
 
   // 5. Build output data matrix (names + X marks) for batch write
@@ -479,20 +508,22 @@ function generateReport(sessionType, isOver18) {
   const numCols = Math.max(parsedDateStrings.length + 1, 1);
   const outputData = uniqueNames.map(name => {
     const row = [name];
-    const dates = personDates[name] || [];
+    const dates = personDates[name] || new Set();
     parsedDateStrings.forEach(dateStr => {
-      row.push(dates.includes(dateStr) ? "X" : "");
+      row.push(dates.has(dateStr) ? "X" : "");
     });
     return row;
   });
 
-  // 6. Clear old content once
+  // 6. Clear old content - include header rows for months/days
+  targetSheet.getRange(4, 2, 1, 200).clearContent(); // Clear month row
+  targetSheet.getRange(5, 2, 1, 200).clearContent(); // Clear day row
   const clearRows = Math.max(targetSheet.getLastRow() - startRow + 1, 1);
   targetSheet.getRange(startRow, 1, clearRows, 200).clearContent();
 
   // 7. Batch write all data
   targetSheet.getRange("C3").setValue(uniqueNames.length);
-  targetSheet.getRange("F3").setValue(totalRows);
+  targetSheet.getRange("F3").setValue(parsedDateStrings.length); // Number of unique session dates
 
   if (months.length > 0) {
     targetSheet.getRange(4, 2, 1, months.length).setValues([months]);

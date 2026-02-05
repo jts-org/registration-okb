@@ -56,6 +56,8 @@ export const TRAINEE_SESSION_REGISTRATION_FORM_LABELS = {
   SUMMARY: 'Yhteenveto:',
   TRAINING_GROUP: 'Harjoitusryhmä:',
   AGE_GROUP: 'Ikäryhmä:',
+  AGE: 'Ikä:',
+  AGE_PLACEHOLDER: 'Syötä ikä (1-17)',
   PROCESSING: 'Prosessoidaan...',
   OK: 'OK',
   CANCEL: 'Peruuta',
