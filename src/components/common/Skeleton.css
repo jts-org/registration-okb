@@ -1,0 +1,76 @@
+/* Skeleton base styles */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface, #1a1a2e) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    var(--color-surface, #1a1a2e) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite ease-in-out;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton variants */
+.skeleton-text {
+  height: 1rem;
+  border-radius: 4px;
+}
+
+.skeleton-button {
+  border-radius: 6px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-rect {
+  border-radius: 8px;
+}
+
+/* Skeleton card */
+.skeleton-card {
+  background: var(--color-surface, #1a1a2e);
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border, #2a2a3e);
+}
+
+.skeleton-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-card-title {
+  flex: 1;
+}
+
+.skeleton-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skeleton-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Skeleton list */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

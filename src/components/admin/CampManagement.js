@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getCamps, addCamp, updateCamp, deleteCamp } from '../../integrations/Api';
+import { SkeletonList } from '../common/Skeleton';
 
 const LABELS = {
   TITLE: 'Leirien hallinta',
@@ -48,8 +49,7 @@ function CampManagement({ onLoading }) {
   const fetchCamps = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getCamps();
-      const body = response instanceof Response ? await response.json() : response;
+      const body = await getCamps();
       const parsedCamps = (body.data || []).map(parseCampData);
       setCamps(parsedCamps);
     } catch (error) {
@@ -156,7 +156,14 @@ function CampManagement({ onLoading }) {
   };
 
   if (isLoading && camps.length === 0) {
-    return <div style={styles.loading}>{LABELS.LOADING}</div>;
+    return (
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <h3 style={styles.title}>{LABELS.TITLE}</h3>
+        </div>
+        <SkeletonList count={3} />
+      </div>
+    );
   }
 
   return (

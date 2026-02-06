@@ -25,8 +25,7 @@ export default function useSettings() {
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
     try {
-      const fetched = await getSettings('settings');
-      const body = fetched instanceof Response ? await fetched.json() : fetched;
+      const body = await getSettings('settings');
 
       const admin = mapAdminSettingsDataToObject(body.data || []);
       const coach = mapCoachSettingsDataToObject(body.data || []);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSessions, addSession, updateSession, deleteSession } from '../../integrations/Api';
+import { SkeletonList } from '../common/Skeleton';
 
 const LABELS = {
   TITLE: 'Kurssien hallinta',
@@ -295,8 +296,7 @@ function SessionManagement({ onLoading }) {
   const fetchSessions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getSessions();
-      const body = response instanceof Response ? await response.json() : response;
+      const body = await getSessions();
       const parsedSessions = (body.data || []).map(parseSessionData);
       setSessions(parsedSessions);
     } catch (error) {
@@ -377,7 +377,10 @@ function SessionManagement({ onLoading }) {
   if (isLoading && sessions.length === 0) {
     return (
       <div style={styles.container}>
-        <div style={styles.loading}>{LABELS.LOADING}</div>
+        <div style={styles.header}>
+          <h2 style={styles.title}>{LABELS.TITLE}</h2>
+        </div>
+        <SkeletonList count={3} />
       </div>
     );
   }

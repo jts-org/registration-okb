@@ -11,7 +11,7 @@ import useSettings from './hooks/useSettings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
 import { TABS, TAB_LABEL_TO_KEY, COACHING_SESSION_OPTIONS, SESSION_OPTIONS } from './constants';
-import { getCamps, getSessions } from './integrations/Api';
+import { getSessionsAndCamps, prefetchData } from './integrations/Api';
 
 const tabs = Object.values(TABS);
 
@@ -84,19 +84,16 @@ function App() {
     if (mappedTab === TABS.TRAINING_SESSION) {
       try {
         setLoading(true);
-        const resp = await getCamps();
-        const body = resp instanceof Response ? await resp.json() : resp;
-        const data = body.data;
+        // Fetch both camps and sessions in parallel (cached after first call)
+        const { camps, sessions } = await getSessionsAndCamps();
         const todayLocal = toLocalYMD(new Date());
-        const campLabels = deriveCampLabels(data, todayLocal);
+        
+        const campLabels = deriveCampLabels(camps.data, todayLocal);
         if (campLabels.length > 1) {
           setTrainingSessionOptions([...(Array.isArray(campLabels) ? campLabels : []), ...SESSION_OPTIONS]);
         } else {
-          // Fallback: fetch regular sessions and include those active today
-          const sResp = await getSessions();
-          const sBody = sResp instanceof Response ? await sResp.json() : sResp;
-          const sData = sBody.data;
-          const sessionLabels = deriveSessionLabels(sData, todayLocal);
+          // Use regular sessions active today
+          const sessionLabels = deriveSessionLabels(sessions.data, todayLocal);
           setTrainingSessionOptions([...(Array.isArray(sessionLabels) ? sessionLabels : []), ...SESSION_OPTIONS]);
         }
       } catch (e) {
@@ -108,6 +105,11 @@ function App() {
     }
     setActiveTab(mappedTab);
   };
+
+  // Prefetch data when app mounts for faster navigation
+  useEffect(() => {
+    prefetchData();
+  }, []);
 
   // Keep global loading in sync with settings hook's loading state
   useEffect(() => {

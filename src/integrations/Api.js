@@ -7,21 +7,70 @@ if (!DEPLOYMENT_ID) {
 
 const API_URL = `${API_BASE_URL}${DEPLOYMENT_ID}/exec`;
 
+// Simple in-memory cache with expiry
+const cache = new Map();
+const CACHE_TTL = 60000; // 1 minute cache
+
+const getCached = (key) => {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
+    return entry.data;
+  }
+  cache.delete(key);
+  return null;
+};
+
+const setCache = (key, data) => {
+  cache.set(key, { data, timestamp: Date.now() });
+};
+
+const clearCache = (keyPrefix) => {
+  if (keyPrefix) {
+    for (const key of cache.keys()) {
+      if (key.startsWith(keyPrefix)) cache.delete(key);
+    }
+  } else {
+    cache.clear();
+  }
+};
+
 const composeUrl = (params = {}) => {
   const queryString = new URLSearchParams(params).toString();
   return queryString ? `${API_URL}?${queryString}` : API_URL;
 };
 
-const get = async (params = {}) => {
-  return await fetch(composeUrl(params), {
+const get = async (params = {}, useCache = true) => {
+  const cacheKey = JSON.stringify(params);
+  
+  if (useCache) {
+    const cached = getCached(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+  
+  const response = await fetch(composeUrl(params), {
     method: 'GET',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8'
     }
   });
+  
+  // Parse and cache the response
+  const data = await response.json();
+  if (useCache) {
+    setCache(cacheKey, data);
+  }
+  return data;
 };
 
 const post = async (payload) => {
+  // Clear relevant cache on mutations
+  const role = payload?.path?.role;
+  if (role === 'camp') clearCache('camps');
+  if (role === 'session') clearCache('sessions');
+  if (role === 'trainee' || role === 'coach') clearCache();
+  
   return await fetch(composeUrl(), {
     method: 'POST',
     headers: {
@@ -65,6 +114,26 @@ const getCamps = async () => {
     console.error('Error fetching camps:', error);
     throw error;
   }
+};
+
+// Fetch both camps and sessions in parallel for faster loading
+const getSessionsAndCamps = async () => {
+  try {
+    const [sessions, camps] = await Promise.all([
+      get({ fetch: 'sessions' }),
+      get({ fetch: 'camps' })
+    ]);
+    return { sessions, camps };
+  } catch (error) {
+    console.error('Error fetching sessions and camps:', error);
+    throw error;
+  }
+};
+
+// Prefetch data without awaiting - fire and forget
+const prefetchData = () => {
+  get({ fetch: 'sessions' }).catch(() => {});
+  get({ fetch: 'camps' }).catch(() => {});
 };
 
 const postRegistration = async (registrationData, role, operation) => {
@@ -160,4 +229,4 @@ const deleteSession = async (sessionId) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession };
+export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession };
