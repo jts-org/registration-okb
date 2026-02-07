@@ -2,6 +2,7 @@ import { useRef, useState, useContext } from 'react';
 import ToggleButtons from './common/ToggleButtons';
 import CampManagement from './admin/CampManagement';
 import SessionManagement from './admin/SessionManagement';
+import PerformanceReport from './admin/PerformanceReport';
 import { TAB_LABELS } from '../constants';
 import { LoadingContext } from '../contexts/LoadingContext';
 
@@ -11,12 +12,14 @@ const ADMIN_LABELS = {
   TITLE: 'Ylläpito',
   CAMPS: 'Leirit',
   SESSIONS: 'Kurssit',
+  REPORTS: 'Raportit',
 };
 
 // Admin sections - easy to extend
 const ADMIN_SECTIONS = {
   CAMPS: 'camps',
   SESSIONS: 'sessions',
+  REPORTS: 'reports',
 };
 
 function AdminView({ onSelect }) {
@@ -72,6 +75,15 @@ function AdminView({ onSelect }) {
           >
             📅 {ADMIN_LABELS.SESSIONS}
           </button>
+          <button
+            style={{
+              ...styles.sectionTab,
+              ...(activeSection === ADMIN_SECTIONS.REPORTS ? styles.sectionTabActive : {}),
+            }}
+            onClick={() => handleSectionChange(ADMIN_SECTIONS.REPORTS)}
+          >
+            📊 {ADMIN_LABELS.REPORTS}
+          </button>
         </div>
 
         {/* Section Content */}
@@ -82,6 +94,10 @@ function AdminView({ onSelect }) {
           
           {activeSection === ADMIN_SECTIONS.SESSIONS && (
             <SessionManagement onLoading={handleLoading} />
+          )}
+          
+          {activeSection === ADMIN_SECTIONS.REPORTS && (
+            <PerformanceReport onLoading={handleLoading} />
           )}
         </div>
       </div>
