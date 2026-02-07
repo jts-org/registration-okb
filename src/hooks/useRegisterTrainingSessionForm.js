@@ -11,7 +11,7 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
     Array.isArray(sessions) && sessions.length === 1 ? sessions[0] : null
   );
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(null);
-  const [selectedAge, setSelectedAge] = useState('');
+  const [selectedAge, setSelectedAge] = useState('15');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [sessionRegistrationData, setSessionRegistrationData] = useState({});
@@ -19,7 +19,7 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
   const initializeForm = () => {
   setSelectedSession(Array.isArray(sessions) && sessions.length === 1 ? sessions[0] : null);
     setSelectedAgeGroup(null);
-    setSelectedAge('');
+    setSelectedAge('15');
     setSelectedDate(new Date().toISOString().split('T')[0]);
     setSessionRegistrationData({});
     setFormInitialized(true);

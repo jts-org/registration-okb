@@ -185,8 +185,15 @@ function getCamps() {
 
 function addTrainee(holder) {
   const sheet = getSpreadsheet().getSheetByName(traineesSheetName);
-  const id = sheet.getLastRow() + 1;
   const formattedDates = formatDates(holder.dates);
+  
+  // Get the last ID from column A to ensure unique incrementing IDs
+  const lastRow = sheet.getLastRow();
+  let id = 1;
+  if (lastRow > 1) {
+    const lastId = sheet.getRange(lastRow, 1).getValue();
+    id = (Number(lastId) || lastRow) + 1;
+  }
 
   const row = [
     id,
@@ -208,8 +215,15 @@ function addTrainee(holder) {
 
 function addCoach(holder) {
   const sheet = getSpreadsheet().getSheetByName(coachesSheetName);
-  const id = sheet.getLastRow() + 1;
   const formattedDates = formatDates(holder.dates);
+  
+  // Get the last ID from column A to ensure unique incrementing IDs
+  const lastRow = sheet.getLastRow();
+  let id = 1;
+  if (lastRow > 1) {
+    const lastId = sheet.getRange(lastRow, 1).getValue();
+    id = (Number(lastId) || lastRow) + 1;
+  }
 
   sheet.appendRow([
     id,
@@ -230,7 +244,14 @@ function addCoach(holder) {
  */
 function addCamp(holder) {
   const sheet = getSpreadsheet().getSheetByName(campsSheetName);
-  const id = sheet.getLastRow() + 1;
+  
+  // Get the last ID from column A to ensure unique incrementing IDs
+  const lastRow = sheet.getLastRow();
+  let id = 1;
+  if (lastRow > 1) {
+    const lastId = sheet.getRange(lastRow, 1).getValue();
+    id = (Number(lastId) || lastRow) + 1;
+  }
   
   // Build row: [id, "camp", NAME, teacher, date1, sessions1, date2, sessions2, ...]
   const row = [
@@ -328,7 +349,14 @@ function deleteCamp(holder) {
  */
 function addSession(holder) {
   const sheet = getSpreadsheet().getSheetByName(sessionsSheetName);
-  const id = sheet.getLastRow() + 1;
+  
+  // Get the last ID from column A to ensure unique incrementing IDs
+  const lastRow = sheet.getLastRow();
+  let id = 1;
+  if (lastRow > 1) {
+    const lastId = sheet.getRange(lastRow, 1).getValue();
+    id = (Number(lastId) || lastRow) + 1;
+  }
   
   const row = [
     id,
@@ -442,7 +470,150 @@ function generateUnder18_JATKO() { generateReport("JATKO", false); }
 function generateUnder18_KUNTO() { generateReport("KUNTO", false); }
 function generateUnder18_PEKU() { generateReport("PEKU", false); }
 function generateUnder18_VAPAASPARRI() { generateReport("VAPAA/SPARRI", false); }
-function generateUnder18_LEIRI() { generateReport("LEIRI", false); }
+
+// Camp report wrapper functions
+function generateOver18_Camp() { generateCampReport(true); }
+function generateUnder18_Camp() { generateCampReport(false); }
+
+/**
+ * Generate camp registration report
+ * @param {boolean} isOver18 - true for 18+ vuotias, false for alle 18-vuotias
+ */
+function generateCampReport(isOver18) {
+  const ss = SpreadsheetApp.getActive();
+  const traineesSheet = ss.getSheetByName("trainees");
+  const campsSheet = ss.getSheetByName(campsSheetName);
+  
+  const ageFilter = isOver18 ? "18+ vuotias" : "alle 18-vuotias";
+  const sheetName = isOver18 ? "trainees_over_18_camp" : "trainees_under_18_camp";
+  const targetSheet = ss.getSheetByName(sheetName);
+  
+  if (!targetSheet) {
+    Logger.log("Target sheet not found: " + sheetName);
+    return;
+  }
+
+  // 1. Get all camp names from camps sheet
+  const campsLastRow = campsSheet.getLastRow();
+  const campNames = new Set();
+  if (campsLastRow > 1) {
+    const campsData = campsSheet.getRange(2, 3, campsLastRow - 1, 1).getValues(); // Column C = camp name
+    campsData.forEach(row => {
+      const name = String(row[0]).trim().toUpperCase();
+      if (name) campNames.add(name);
+    });
+  }
+
+  // 2. Read trainees data - get more columns to include age (column 7+)
+  const lastRow = traineesSheet.getLastRow();
+  if (lastRow < 2) return;
+  
+  // Read up to column 10 to capture age data which may be after dates
+  const maxCols = Math.min(traineesSheet.getLastColumn(), 20);
+  const traineesData = traineesSheet.getRange(2, 1, lastRow - 1, maxCols).getValues();
+  
+  // 3. Filter trainees who registered for camp sessions
+  // Camp sessions are named like "CAMPNAME SESSIO X"
+  const filtered = traineesData.filter(r => {
+    const ageGroup = String(r[3]).trim();
+    const sessionName = String(r[4]).trim().toUpperCase();
+    
+    if (ageGroup !== ageFilter) return false;
+    
+    // Check if session name starts with any camp name
+    for (const campName of campNames) {
+      if (sessionName.startsWith(campName)) return true;
+    }
+    return false;
+  });
+
+  // 4. Extract camp name from session name (remove "SESSIO X" part)
+  const extractCampName = (sessionName) => {
+    const upper = String(sessionName).trim().toUpperCase();
+    const match = upper.match(/^(.+?)\s+SESSIO\s+\d+$/);
+    return match ? match[1] : upper;
+  };
+
+  // 5. Collect unique dates and build person data
+  const dateSet = new Set();
+  const personData = {}; // { "lastname firstname": { camp: "CAMPNAME", dates: Set, age: number|null } }
+  
+  filtered.forEach(r => {
+    const firstName = String(r[1]).trim();
+    const lastName = String(r[2]).trim();
+    const sessionName = r[4];
+    const dateVal = r[5];
+    const age = r[6]; // Age column (if present, for under-18)
+    
+    const name = `${lastName} ${firstName}`;
+    const campName = extractCampName(sessionName);
+    const dateStr = normalizeDate(dateVal);
+    
+    if (dateStr) dateSet.add(dateStr);
+    
+    if (!personData[name]) {
+      personData[name] = { camp: campName, dates: new Set(), age: null };
+    }
+    if (dateStr) personData[name].dates.add(dateStr);
+    
+    // Store age for under-18 (take the first non-empty age found)
+    if (!isOver18 && age !== undefined && age !== null && age !== "" && personData[name].age === null) {
+      personData[name].age = age;
+    }
+  });
+
+  // 6. Sort dates and names
+  const sortedDates = [...dateSet].sort();
+  const parsedDates = sortedDates.map(d => new Date(d));
+  const months = parsedDates.map(d => d.getMonth() + 1);
+  const days = parsedDates.map(d => d.getDate());
+  
+  const sortedNames = Object.keys(personData).sort();
+
+  // 7. Build output matrix
+  // Row format: [name (age), camp, X, X, X, ...]
+  const startRow = 7; // Data starts at row 7
+  const outputData = sortedNames.map(name => {
+    const data = personData[name];
+    let displayName = name;
+    
+    // For under-18, add age in parenthesis
+    if (!isOver18 && data.age !== null && data.age !== "") {
+      displayName = `${name} (${data.age})`;
+    }
+    
+    const row = [displayName, data.camp];
+    sortedDates.forEach(dateStr => {
+      row.push(data.dates.has(dateStr) ? "X" : "");
+    });
+    return row;
+  });
+
+  // 8. Clear old content (preserve rows 1, 2, 6)
+  // Clear month row (row 4) from column C onwards
+  targetSheet.getRange(4, 3, 1, 200).clearContent();
+  // Clear day row (row 5) from column C onwards
+  targetSheet.getRange(5, 3, 1, 200).clearContent();
+  // Clear data rows (row 7+)
+  const clearRows = Math.max(targetSheet.getLastRow() - startRow + 1, 1);
+  targetSheet.getRange(startRow, 1, clearRows, 200).clearContent();
+
+  // 9. Write statistics to B3 and E3
+  targetSheet.getRange("B3").setValue(sortedNames.length); // harrastajia count
+  targetSheet.getRange("E3").setValue(sortedDates.length);  // sessioita count
+
+  // 10. Write month/day headers starting at column C
+  if (months.length > 0) {
+    targetSheet.getRange(4, 3, 1, months.length).setValues([months]); // C4 onwards
+    targetSheet.getRange(5, 3, 1, days.length).setValues([days]);     // C5 onwards
+  }
+
+  // 11. Write data (row 7+)
+  if (outputData.length > 0) {
+    const numCols = outputData[0].length;
+    targetSheet.getRange(startRow, 1, outputData.length, numCols).setValues(outputData);
+  }
+}
 
 
 /**

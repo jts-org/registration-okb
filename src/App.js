@@ -89,7 +89,7 @@ function App() {
         const todayLocal = toLocalYMD(new Date());
         
         const campLabels = deriveCampLabels(camps.data, todayLocal);
-        if (campLabels.length > 1) {
+        if (campLabels.length > 0) {
           setTrainingSessionOptions([...(Array.isArray(campLabels) ? campLabels : []), ...SESSION_OPTIONS]);
         } else {
           // Use regular sessions active today
