@@ -293,10 +293,10 @@ function SessionManagement({ onLoading }) {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  const fetchSessions = useCallback(async () => {
+  const fetchSessions = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
     try {
-      const body = await getSessions();
+      const body = await getSessions(forceRefresh);
       const parsedSessions = (body.data || []).map(parseSessionData);
       setSessions(parsedSessions);
     } catch (error) {
@@ -341,7 +341,7 @@ function SessionManagement({ onLoading }) {
       } else {
         await updateSession(editingSession);
       }
-      await fetchSessions();
+      await fetchSessions(true); // Force refresh after save
       setEditingSession(null);
       setIsAddingNew(false);
     } catch (error) {
@@ -361,7 +361,7 @@ function SessionManagement({ onLoading }) {
     setIsLoading(true);
     try {
       await deleteSession(deleteConfirm.id);
-      await fetchSessions();
+      await fetchSessions(true); // Force refresh after delete
     } catch (error) {
       // Error deleting session
     } finally {

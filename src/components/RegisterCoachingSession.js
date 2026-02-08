@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import DatePicker from './common/DatePicker';
 import ConfirmationDialog from './ConfirmationDialog';
+import Snackbar from './common/Snackbar';
 import useRegisterCoachingSessionForm from '../hooks/useRegisterCoachingSessionForm';
-import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS } from '../constants';
+import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../constants';
 import useCoachRegistrations from '../hooks/useCoachRegistrations';
 import ToggleButtons from './common/ToggleButtons';
 
@@ -12,6 +13,7 @@ const tabs = [TAB_LABELS.MAIN];
 function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_SESSION_OPTIONS, viewAsCoach = false }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const handleFirstNameChange = e => setFirstName(e.target.value);
   const handleLastNameChange = e => setLastName(e.target.value);
   const tabButtonRef = useRef(null);
@@ -22,9 +24,24 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
 
   const { onNewCoachRegistration, isLoading: registrationsLoading } = useCoachRegistrations();
 
-  const onCreate = (sessionRegistrationData) => {
-    onNewCoachRegistration(sessionRegistrationData);
+  const onCreate = async (sessionRegistrationData) => {
+    const result = await onNewCoachRegistration(sessionRegistrationData);
+    if (result?.success) {
+      setSnackbar({
+        open: true,
+        message: result.exists ? NOTIFICATION_MESSAGES.REGISTRATION_EXISTS : NOTIFICATION_MESSAGES.REGISTRATION_SUCCESS,
+        severity: 'success',
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: NOTIFICATION_MESSAGES.REGISTRATION_ERROR,
+        severity: 'error',
+      });
+    }
   };
+
+  const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
   const {
     sessionButtonRef,
@@ -141,7 +158,13 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
       }
         onConfirm={handleConfirmed}
         onCancel={handleCancelled} />
-      }      
+      }
+      <Snackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+      />
       {/* Additional form fields and submission logic would go here */}
     </div>
   );

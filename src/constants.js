@@ -79,6 +79,13 @@ export const COACH_SESSION_REGISTRATION_FORM_LABELS = {
   CANCEL: 'Peruuta',
 };
 
+// Notification messages
+export const NOTIFICATION_MESSAGES = {
+  REGISTRATION_SUCCESS: 'Rekisteröinti onnistui!',
+  REGISTRATION_ERROR: 'Rekisteröinti epäonnistui. Yritä uudelleen.',
+  REGISTRATION_EXISTS: 'Rekisteröinti on jo olemassa.',
+};
+
 // Menu options
 export const MAIN_MENU_OPTIONS = [
   TAB_LABELS.TRAINING_SESSIONS,

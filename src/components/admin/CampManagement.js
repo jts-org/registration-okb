@@ -46,10 +46,10 @@ function CampManagement({ onLoading }) {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  const fetchCamps = useCallback(async () => {
+  const fetchCamps = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
     try {
-      const body = await getCamps();
+      const body = await getCamps(forceRefresh);
       const parsedCamps = (body.data || []).map(parseCampData);
       setCamps(parsedCamps);
     } catch (error) {
@@ -102,7 +102,7 @@ function CampManagement({ onLoading }) {
         await updateCamp(campData);
       }
       
-      await fetchCamps();
+      await fetchCamps(true); // Force refresh after save
       setEditingCamp(null);
       setIsAddingNew(false);
     } catch (error) {
@@ -119,7 +119,7 @@ function CampManagement({ onLoading }) {
     
     try {
       await deleteCamp(campId);
-      await fetchCamps();
+      await fetchCamps(true); // Force refresh after delete
       setDeleteConfirm(null);
     } catch (error) {
       console.error('Error deleting camp:', error);

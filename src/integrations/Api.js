@@ -67,8 +67,18 @@ const get = async (params = {}, useCache = true) => {
 const post = async (payload) => {
   // Clear relevant cache on mutations
   const role = payload?.path?.role;
-  if (role === 'camp') clearCache('camps');
-  if (role === 'session') clearCache('sessions');
+  if (role === 'camp') {
+    // Clear all camp-related cache entries
+    for (const key of cache.keys()) {
+      if (key.includes('camps')) cache.delete(key);
+    }
+  }
+  if (role === 'session') {
+    // Clear all session-related cache entries
+    for (const key of cache.keys()) {
+      if (key.includes('sessions')) cache.delete(key);
+    }
+  }
   if (role === 'trainee' || role === 'coach') clearCache();
   
   return await fetch(composeUrl(), {
@@ -98,18 +108,18 @@ const getRegistrations = async (target) => {
   }
 };
 
-const getSessions = async () => {
+const getSessions = async (forceRefresh = false) => {
   try {
-    return await get({ fetch: 'sessions' });
+    return await get({ fetch: 'sessions' }, !forceRefresh);
   } catch (error) {
     console.error('Error fetching sessions:', error);
     throw error;
   }
 };
 
-const getCamps = async () => {
+const getCamps = async (forceRefresh = false) => {
   try {
-    return await get({ fetch: 'camps' });
+    return await get({ fetch: 'camps' }, !forceRefresh);
   } catch (error) {
     console.error('Error fetching camps:', error);
     throw error;
@@ -229,4 +239,13 @@ const deleteSession = async (sessionId) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession };
+const getCoachesExperience = async () => {
+  try {
+    return await get({ fetch: 'coaches_experience' });
+  } catch (error) {
+    console.error('Error fetching coaches experience:', error);
+    throw error;
+  }
+};
+
+export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience };

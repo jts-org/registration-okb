@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getRegistrations, getCamps } from '../../integrations/Api';
+import { getRegistrations, getCamps, getCoachesExperience } from '../../integrations/Api';
 import { SkeletonList } from '../common/Skeleton';
 
 const LABELS = {
@@ -13,6 +13,7 @@ const LABELS = {
   COACH_NAME: 'Nimi',
   COACH_GROUPS: 'Valmennus/ohjausryhmä',
   COACH_HOURS: 'Ohjaustyötä tuntia/vuosi',
+  COACH_EXPERIENCE: 'Koulutuskokemus',
   NO_DATA: 'Ei tietoja',
   LOADING: 'Ladataan...',
   REFRESH: '🔄 Päivitä',
@@ -105,8 +106,10 @@ function processTraineeData(trainees, campNames, isOver18) {
 /**
  * Process coach data into report format
  * Coaches data format: [id, firstName, lastName, sessionName, date]
+ * @param {Array} coaches - Coach registration data
+ * @param {Object} experienceMap - Map of coach name to experience years
  */
-function processCoachData(coaches) {
+function processCoachData(coaches, experienceMap = {}) {
   const coachData = {};
 
   coaches.forEach(row => {
@@ -134,11 +137,51 @@ function processCoachData(coaches) {
     name,
     sessions: Array.from(data.sessions).sort().join(', '),
     hours: data.totalRegistrations * 1.5,
+    experience: experienceMap[name] || 0,
   }));
 
   result.sort((a, b) => a.name.localeCompare(b.name));
 
   return result;
+}
+
+/**
+ * Parse coaches experience data into a map
+ * Experience data format: [header_row, ...data_rows]
+ * Header: [Nimi, 2025, 2026, ...]
+ * Data: [name, exp_2025, exp_2026, ...]
+ */
+function parseExperienceData(data) {
+  if (!data || data.length < 2) return {};
+  
+  const header = data[0];
+  const currentYear = new Date().getFullYear();
+  
+  // Find the current year column or the last year with data
+  let yearColIndex = -1;
+  for (let i = header.length - 1; i >= 1; i--) {
+    const year = Number(header[i]);
+    if (year === currentYear) {
+      yearColIndex = i;
+      break;
+    }
+    if (year && year < currentYear && yearColIndex === -1) {
+      yearColIndex = i; // Use last available year if current year not found
+    }
+  }
+  
+  if (yearColIndex === -1) return {};
+  
+  const experienceMap = {};
+  for (let i = 1; i < data.length; i++) {
+    const name = String(data[i][0]).trim();
+    const exp = Number(data[i][yearColIndex]) || 0;
+    if (name) {
+      experienceMap[name] = exp;
+    }
+  }
+  
+  return experienceMap;
 }
 
 function PerformanceReport({ onLoading }) {
@@ -150,16 +193,18 @@ function PerformanceReport({ onLoading }) {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch trainees, coaches, and camps in parallel
-      const [traineesResp, coachesResp, campsResp] = await Promise.all([
+      // Fetch trainees, coaches, camps, and experience in parallel
+      const [traineesResp, coachesResp, campsResp, experienceResp] = await Promise.all([
         getRegistrations('trainee_registrations'),
         getRegistrations('coach_registrations'),
         getCamps(),
+        getCoachesExperience(),
       ]);
 
       const trainees = traineesResp.data || [];
       const coaches = coachesResp.data || [];
       const camps = campsResp.data || [];
+      const experienceData = experienceResp.data || [];
 
       // Extract camp names from camps data
       // Camps format: [id, "camp", name, teacher, ...]
@@ -169,10 +214,13 @@ function PerformanceReport({ onLoading }) {
         if (name) campNames.add(name);
       });
 
+      // Parse experience data into map
+      const experienceMap = parseExperienceData(experienceData);
+
       // Process data
       setOver18Data(processTraineeData(trainees, campNames, true));
       setUnder18Data(processTraineeData(trainees, campNames, false));
-      setCoachData(processCoachData(coaches));
+      setCoachData(processCoachData(coaches, experienceMap));
     } catch (error) {
       console.error('Error fetching performance data:', error);
     } finally {
@@ -300,13 +348,14 @@ function PerformanceReport({ onLoading }) {
             <tr>
               <th style={styles.th}>{LABELS.COACH_NAME}</th>
               <th style={styles.th}>{LABELS.COACH_GROUPS}</th>
+              <th style={{ ...styles.th, ...styles.thNumber }}>{LABELS.COACH_EXPERIENCE}</th>
               <th style={{ ...styles.th, ...styles.thNumber }}>{LABELS.COACH_HOURS}</th>
             </tr>
           </thead>
           <tbody>
             {coachData.length === 0 ? (
               <tr>
-                <td style={styles.td} colSpan={3}>{LABELS.NO_DATA}</td>
+                <td style={styles.td} colSpan={4}>{LABELS.NO_DATA}</td>
               </tr>
             ) : (
               <>
@@ -314,11 +363,13 @@ function PerformanceReport({ onLoading }) {
                   <tr key={index} style={index % 2 === 0 ? styles.trEven : styles.trOdd}>
                     <td style={styles.td}>{row.name}</td>
                     <td style={styles.td}>{row.sessions}</td>
+                    <td style={{ ...styles.td, ...styles.tdNumber }}>{row.experience > 0 ? row.experience : '-'}</td>
                     <td style={{ ...styles.td, ...styles.tdNumber }}>{row.hours}</td>
                   </tr>
                 ))}
                 <tr style={styles.trTotal}>
                   <td style={{ ...styles.td, ...styles.tdTotal }}>{LABELS.TOTAL}</td>
+                  <td style={{ ...styles.td, ...styles.tdTotal }}></td>
                   <td style={{ ...styles.td, ...styles.tdTotal }}></td>
                   <td style={{ ...styles.td, ...styles.tdNumber, ...styles.tdTotal }}>
                     {coachData.reduce((sum, row) => sum + row.hours, 0)}

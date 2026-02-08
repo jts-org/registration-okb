@@ -3,9 +3,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtons from "./common/ToggleButtons";
 import DatePicker from './common/DatePicker';
 import ConfirmationDialog from './ConfirmationDialog';
+import Snackbar from './common/Snackbar';
 import useRegisterTrainingSessionForm from '../hooks/useRegisterTrainingSessionForm';
 import useTraineeRegistrations from '../hooks/useTraineeRegistrations';
-import { TAB_LABELS, SESSION_OPTIONS, AGE_GROUP_OPTIONS, TRAINEE_SESSION_REGISTRATION_FORM_LABELS } from '../constants';
+import { TAB_LABELS, SESSION_OPTIONS, AGE_GROUP_OPTIONS, TRAINEE_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../constants';
 import '../App.css';
 
 const tabs = [TAB_LABELS.MAIN];
@@ -62,6 +63,7 @@ const ageInputStyles = {
 function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const handleFirstNameChange = e => setFirstName(e.target.value);
   const handleLastNameChange = e => setLastName(e.target.value);
   const tabButtonRef = useRef(null);
@@ -73,10 +75,24 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
 
   const { onNewTraineeRegistration, isLoading: registrationsLoading } = useTraineeRegistrations();
 
-  const onCreate = (sessionRegistrationData) => {
-
-    onNewTraineeRegistration(sessionRegistrationData);
+  const onCreate = async (sessionRegistrationData) => {
+    const result = await onNewTraineeRegistration(sessionRegistrationData);
+    if (result?.success) {
+      setSnackbar({
+        open: true,
+        message: result.exists ? NOTIFICATION_MESSAGES.REGISTRATION_EXISTS : NOTIFICATION_MESSAGES.REGISTRATION_SUCCESS,
+        severity: 'success',
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: NOTIFICATION_MESSAGES.REGISTRATION_ERROR,
+        severity: 'error',
+      });
+    }
   };
+
+  const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
   const {
     sessionButtonRef,
@@ -254,6 +270,12 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
         onConfirm={handleConfirmed}
         onCancel={handleCancelled} />
       }
+      <Snackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+      />
     </div>
   );
 }

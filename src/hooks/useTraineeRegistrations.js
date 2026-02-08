@@ -41,17 +41,20 @@ export default function useTraineeRegistrations() {
       const source = Array.isArray(latest) ? latest : traineeRegistrations;
       let matchingEntry = findMatchingRegistrationEntry(sessionRegistrationData, source);
       if (matchingEntry) {
-        // Registration already exists - TODO: Implement update logic when needed
-        // TODO: Implement update logic when needed
+        // Registration already exists
+        return { success: true, exists: true };
       } else {
         const id = await register(sessionRegistrationData, "trainee", "add");
         if (id > 0) {
           const registered = { ...sessionRegistrationData, id: id };
           setTraineeRegistrations(prev => [...prev, registered]);
+          return { success: true, exists: false };
         }
+        return { success: false, exists: false };
       }
     } catch (error) {
       console.error('Error posting trainee registration:', error);
+      return { success: false, error };
     } finally {
       setIsLoading(false);
       try { hideLoading(); } catch (e) {}
@@ -60,9 +63,13 @@ export default function useTraineeRegistrations() {
 
   const fetchFromServer = useCallback(() => fetchTraineeRegistrationsFromServer(), [fetchTraineeRegistrationsFromServer]);
 
-  function onNewTraineeRegistration(sessionRegistrationData) {
-    // fire-and-forget: let registerTraineeSession handle async work and errors
-    registerTraineeSession(sessionRegistrationData).catch(err => console.error(err));
+  async function onNewTraineeRegistration(sessionRegistrationData) {
+    try {
+      return await registerTraineeSession(sessionRegistrationData);
+    } catch (err) {
+      console.error('Error registering trainee session:', err);
+      return { success: false, error: err };
+    }
   }
 
   return { onNewTraineeRegistration, fetchFromServer, traineeRegistrations, isLoading };

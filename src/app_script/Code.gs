@@ -4,6 +4,7 @@ const traineesSheetName = "trainees";
 const coachesSheetName = "coaches";
 const sessionsSheetName = "sessions";
 const campsSheetName = "camps";
+const coachesExperienceSheetName = "coaches_experience";
 
 function doPost(e) {
   // Parse the full request body
@@ -85,6 +86,8 @@ function doGet(e) {
     result = getSessions();
   } else if (fetchType === "camps") {
     result = getCamps();
+  } else if (fetchType === "coaches_experience") {
+    result = getCoachesExperience();
   } else {
     result = { error: "Invalid fetch type: " + (fetchType || "undefined") };
   }
@@ -181,6 +184,151 @@ function getSessions() {
 
 function getCamps() {
   return normalizeDatesInArray(getSheetData(campsSheetName));
+}
+
+/**
+ * Get coaches experience data
+ * Returns array of [name, year1_exp, year2_exp, ...] with header row containing years
+ */
+function getCoachesExperience() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName(coachesExperienceSheetName);
+  
+  if (!sheet) {
+    return [];
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  return data; // Include header row with years
+}
+
+/**
+ * Update coaches experience sheet
+ * - Adds new year column if needed
+ * - Increments experience for active coaches (green background)
+ * - Carries over experience for inactive coaches (no green)
+ */
+function updateCoachesExperience() {
+  const ss = getSpreadsheet();
+  const coachesSheet = ss.getSheetByName(coachesSheetName);
+  let expSheet = ss.getSheetByName(coachesExperienceSheetName);
+  
+  // Create sheet if it doesn't exist
+  if (!expSheet) {
+    expSheet = ss.insertSheet(coachesExperienceSheetName);
+    expSheet.getRange(1, 1).setValue("Nimi");
+    SpreadsheetApp.flush();
+  }
+  
+  const currentYear = new Date().getFullYear();
+  
+  // Get all coach registrations for current year
+  const coachesData = coachesSheet.getDataRange().getValues().slice(1);
+  const activeCoachesThisYear = new Set();
+  
+  coachesData.forEach(row => {
+    const firstName = String(row[1]).trim();
+    const lastName = String(row[2]).trim();
+    const dateVal = row[4];
+    
+    if (!firstName || !lastName || !dateVal) return;
+    
+    const regDate = new Date(dateVal);
+    const regYear = regDate.getFullYear();
+    
+    if (regYear === currentYear) {
+      activeCoachesThisYear.add(`${firstName} ${lastName}`);
+    }
+  });
+  
+  // Re-read experience data fresh
+  const expData = expSheet.getDataRange().getValues();
+  const headerRow = expData[0] || ["Nimi"];
+  
+  // Find current year column (1-based for sheet operations)
+  let yearCol = -1;
+  for (let i = 0; i < headerRow.length; i++) {
+    if (Number(headerRow[i]) === currentYear) {
+      yearCol = i + 1; // Convert to 1-based
+      break;
+    }
+  }
+  
+  // Add new year column if not found
+  if (yearCol === -1) {
+    yearCol = headerRow.length + 1;
+    expSheet.getRange(1, yearCol).setValue(currentYear);
+    SpreadsheetApp.flush();
+  }
+  
+  // Find the last year column with data (for getting previous experience)
+  let lastDataColIndex = 0; // 0-based index in data array
+  for (let i = headerRow.length - 1; i >= 1; i--) {
+    if (Number(headerRow[i]) > 0 && Number(headerRow[i]) < currentYear) {
+      lastDataColIndex = i;
+      break;
+    }
+  }
+  
+  // Build map of existing coaches with their row numbers and previous experience
+  const existingCoaches = {};
+  for (let i = 1; i < expData.length; i++) {
+    const name = String(expData[i][0]).trim();
+    if (name) {
+      // Get previous experience from last data column
+      let prevExp = 0;
+      if (lastDataColIndex > 0 && expData[i][lastDataColIndex] !== undefined) {
+        prevExp = Number(expData[i][lastDataColIndex]) || 0;
+      }
+      existingCoaches[name] = { rowNum: i + 1, prevExp: prevExp };
+    }
+  }
+  
+  // Process active coaches - increment experience
+  const processedCoaches = new Set();
+  
+  activeCoachesThisYear.forEach(coachName => {
+    processedCoaches.add(coachName);
+    
+    if (existingCoaches[coachName]) {
+      const rowNum = existingCoaches[coachName].rowNum;
+      const prevExp = existingCoaches[coachName].prevExp;
+      const newExp = prevExp + 1;
+      
+      expSheet.getRange(rowNum, yearCol).setValue(newExp);
+      expSheet.getRange(rowNum, yearCol).setBackground("#ccffcc");
+    } else {
+      // New coach - add to sheet
+      const newRowNum = expSheet.getLastRow() + 1;
+      expSheet.getRange(newRowNum, 1).setValue(coachName);
+      expSheet.getRange(newRowNum, yearCol).setValue(1);
+      expSheet.getRange(newRowNum, yearCol).setBackground("#ccffcc");
+      existingCoaches[coachName] = { rowNum: newRowNum, prevExp: 0 };
+    }
+  });
+  
+  // Process inactive coaches - carry over previous experience (no green)
+  for (const coachName in existingCoaches) {
+    if (!processedCoaches.has(coachName)) {
+      const rowNum = existingCoaches[coachName].rowNum;
+      const prevExp = existingCoaches[coachName].prevExp;
+      
+      if (prevExp > 0) {
+        expSheet.getRange(rowNum, yearCol).setValue(prevExp);
+        // No green background for inactive year
+      }
+    }
+  }
+  
+  // Style header row
+  const lastCol = expSheet.getLastColumn();
+  if (lastCol > 0) {
+    expSheet.getRange(1, 1, 1, lastCol).setBackground("#e0e0e0").setFontWeight("bold");
+  }
+  
+  SpreadsheetApp.flush();
+  
+  return "Experience updated for " + currentYear;
 }
 
 function addTrainee(holder) {

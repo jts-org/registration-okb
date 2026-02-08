@@ -40,15 +40,19 @@ export default function useCoachRegistrations() {
       let matchingEntry = findMatchingRegistrationEntry(sessionRegistrationData, source);
       if (matchingEntry) {
         // Registration already exists
+        return { success: true, exists: true };
       } else {
         const id = await register(sessionRegistrationData, "coach", "add");
         if (id > 0) {
           const registered = { ...sessionRegistrationData, id: id };
           setCoachRegistrations(prev => [...prev, registered]);
+          return { success: true, exists: false };
         }
+        return { success: false, exists: false };
       }
     } catch (e) {
       console.error('Error posting coach registration:', e);
+      return { success: false, error: e };
     } finally {
       setIsLoading(false);
       try { hideLoading(); } catch (e) {}
@@ -57,10 +61,13 @@ export default function useCoachRegistrations() {
 
   const fetchFromServer = useCallback(() => fetchCoachRegistrationsFromServer(), [fetchCoachRegistrationsFromServer]);
 
-  function onNewCoachRegistration(sessionRegistrationData) {
-    registerCoachingSession(sessionRegistrationData).catch(error => {
+  async function onNewCoachRegistration(sessionRegistrationData) {
+    try {
+      return await registerCoachingSession(sessionRegistrationData);
+    } catch (error) {
       console.error('Error registering coaching session:', error);
-    });
+      return { success: false, error };
+    }
   }
 
   return { onNewCoachRegistration, fetchFromServer, coachRegistrations, isLoading };
