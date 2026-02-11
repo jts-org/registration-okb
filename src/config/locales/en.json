@@ -1,0 +1,140 @@
+{
+  "app": {
+    "title": "Registration",
+    "subtitle": "Session Registration System",
+    "loading": "Loading...",
+    "processing": "Processing...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "navigation": {
+    "mainMenu": "Main Menu",
+    "trainingSessions": "Training Sessions",
+    "coaches": "Coaches",
+    "admin": "Admin",
+    "camps": "Camps",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "traineeRegistration": {
+    "title": "Trainee Registration for Training Session",
+    "selectTrainingGroup": "Select Training Group",
+    "selectAgeGroup": "Select Age Group",
+    "sessionDate": "Training Session Date",
+    "dateLabel": "Date",
+    "fullName": "Your Full Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "age": "Age",
+    "agePlaceholder": "Enter age (1-17)",
+    "submit": "Register",
+    "summary": "Summary",
+    "trainingGroup": "Training Group",
+    "ageGroup": "Age Group"
+  },
+  "coachRegistration": {
+    "title": "Coach Registration for Coaching Session",
+    "selectCoachingSession": "Select Group",
+    "sessionDate": "Training Session Date",
+    "dateLabel": "Date",
+    "fullName": "Your Full Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "submit": "Register",
+    "summary": "Summary",
+    "trainingGroup": "Training Group"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "password": "Password",
+    "enterPassword": "Enter password",
+    "login": "Login",
+    "logout": "Logout",
+    "incorrectPassword": "Incorrect password",
+    "tabs": {
+      "camps": "Camps",
+      "sessions": "Courses",
+      "reports": "Reports"
+    }
+  },
+  "campManagement": {
+    "title": "Camp Management",
+    "addNew": "+ Add New Camp",
+    "name": "Camp Name",
+    "teacher": "Instructor",
+    "days": "Days",
+    "addDay": "+ Add Day",
+    "date": "Date",
+    "sessions": "Sessions",
+    "confirmDelete": "Are you sure you want to delete the camp",
+    "noCamps": "No camps"
+  },
+  "sessionManagement": {
+    "title": "Course Management",
+    "addNew": "+ Add New Course",
+    "name": "Course Name",
+    "course": "Course Type",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "confirmDelete": "Are you sure you want to delete the course",
+    "noSessions": "No courses"
+  },
+  "performanceReport": {
+    "title": "Performance Report",
+    "over18": "Over 18 years",
+    "under18": "Under 18 years",
+    "coaches": "Coaches",
+    "teamGroup": "Team/Group",
+    "personCount": "Person Count",
+    "performanceCount": "Performance Count",
+    "name": "Name",
+    "coachingGroup": "Coaching Group",
+    "experience": "Training Experience",
+    "hoursPerYear": "Coaching Hours/Year",
+    "total": "Total",
+    "noData": "No data"
+  },
+  "notifications": {
+    "registrationSuccess": "Registration successful!",
+    "registrationError": "Registration failed. Please try again.",
+    "registrationExists": "Registration already exists.",
+    "saveSuccess": "Save successful!",
+    "saveError": "Save failed.",
+    "deleteSuccess": "Delete successful!",
+    "deleteError": "Delete failed."
+  },
+  "validation": {
+    "required": "Required field",
+    "invalidEmail": "Invalid email address",
+    "invalidDate": "Invalid date",
+    "invalidAge": "Age must be 1-17"
+  },
+  "ageGroups": {
+    "adult": "18+ years",
+    "minor": "Under 18 years"
+  },
+  "courseTypes": {
+    "basic": "Basic Course",
+    "advanced": "Advanced Course",
+    "fitness": "Fitness"
+  },
+  "footer": {
+    "copyright": "© 2026 Oulu Kickboxing ry",
+    "allRightsReserved": "All rights reserved"
+  }
+}

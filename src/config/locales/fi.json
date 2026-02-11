@@ -1,0 +1,140 @@
+{
+  "app": {
+    "title": "Rekisteröinti",
+    "subtitle": "Treenien hallinta- ja ilmoittautumisjärjestelmä",
+    "loading": "Ladataan...",
+    "processing": "Prosessoidaan...",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "ok": "OK",
+    "edit": "Muokkaa",
+    "delete": "Poista",
+    "add": "Lisää",
+    "close": "Sulje",
+    "confirm": "Vahvista",
+    "back": "Takaisin",
+    "next": "Seuraava",
+    "submit": "Lähetä",
+    "search": "Hae",
+    "filter": "Suodata",
+    "all": "Kaikki",
+    "none": "Ei mitään",
+    "yes": "Kyllä",
+    "no": "Ei"
+  },
+  "navigation": {
+    "mainMenu": "Päävalikko",
+    "trainingSessions": "Harjoitussessiot",
+    "coaches": "Vetäjät",
+    "admin": "Admin",
+    "camps": "Leirit",
+    "reports": "Raportit",
+    "settings": "Asetukset"
+  },
+  "traineeRegistration": {
+    "title": "Harrastajan rekisteröityminen treenisessioon",
+    "selectTrainingGroup": "Valitse harjoitusryhmä",
+    "selectAgeGroup": "Valitse ikäryhmä",
+    "sessionDate": "Treenisession päivämäärä",
+    "dateLabel": "Päivämäärä",
+    "fullName": "Etu- ja sukunimesi",
+    "firstName": "Etunimi",
+    "lastName": "Sukunimi",
+    "age": "Ikä",
+    "agePlaceholder": "Syötä ikä (1-17)",
+    "submit": "Ilmoittaudu",
+    "summary": "Yhteenveto",
+    "trainingGroup": "Harjoitusryhmä",
+    "ageGroup": "Ikäryhmä"
+  },
+  "coachRegistration": {
+    "title": "Vetäjän rekisteröityminen valmennussessioon",
+    "selectCoachingSession": "Valitse ryhmä",
+    "sessionDate": "Treenisession päivämäärä",
+    "dateLabel": "Päivämäärä",
+    "fullName": "Etu- ja sukunimesi",
+    "firstName": "Etunimi",
+    "lastName": "Sukunimi",
+    "submit": "Ilmoittaudu",
+    "summary": "Yhteenveto",
+    "trainingGroup": "Harjoitusryhmä"
+  },
+  "admin": {
+    "title": "Hallintapaneeli",
+    "password": "Salasana",
+    "enterPassword": "Syötä salasana",
+    "login": "Kirjaudu",
+    "logout": "Kirjaudu ulos",
+    "incorrectPassword": "Väärä salasana",
+    "tabs": {
+      "camps": "Leirit",
+      "sessions": "Kurssit",
+      "reports": "Raportit"
+    }
+  },
+  "campManagement": {
+    "title": "Leirien hallinta",
+    "addNew": "+ Lisää uusi leiri",
+    "name": "Leirin nimi",
+    "teacher": "Vetäjä",
+    "days": "Päivät",
+    "addDay": "+ Lisää päivä",
+    "date": "Päivämäärä",
+    "sessions": "Sessioita",
+    "confirmDelete": "Haluatko varmasti poistaa leirin",
+    "noCamps": "Ei leirejä"
+  },
+  "sessionManagement": {
+    "title": "Kurssien hallinta",
+    "addNew": "+ Lisää uusi kurssi",
+    "name": "Kurssin nimi",
+    "course": "Kurssityyppi",
+    "startDate": "Alkupäivä",
+    "endDate": "Loppupäivä",
+    "confirmDelete": "Haluatko varmasti poistaa kurssin",
+    "noSessions": "Ei kursseja"
+  },
+  "performanceReport": {
+    "title": "Suoritemääräraportti",
+    "over18": "Yli 18-vuotiaat",
+    "under18": "Alle 18-vuotiaat",
+    "coaches": "Valmentajat",
+    "teamGroup": "Joukkue/ryhmä",
+    "personCount": "Hlö-määrä",
+    "performanceCount": "Suoritemäärä",
+    "name": "Nimi",
+    "coachingGroup": "Valmennus/ohjausryhmä",
+    "experience": "Koulutuskokemus",
+    "hoursPerYear": "Ohjaustyötä tuntia/vuosi",
+    "total": "Yhteensä",
+    "noData": "Ei tietoja"
+  },
+  "notifications": {
+    "registrationSuccess": "Rekisteröinti onnistui!",
+    "registrationError": "Rekisteröinti epäonnistui. Yritä uudelleen.",
+    "registrationExists": "Rekisteröinti on jo olemassa.",
+    "saveSuccess": "Tallennus onnistui!",
+    "saveError": "Tallennus epäonnistui.",
+    "deleteSuccess": "Poisto onnistui!",
+    "deleteError": "Poisto epäonnistui."
+  },
+  "validation": {
+    "required": "Pakollinen kenttä",
+    "invalidEmail": "Virheellinen sähköpostiosoite",
+    "invalidDate": "Virheellinen päivämäärä",
+    "invalidAge": "Ikä täytyy olla 1-17"
+  },
+  "ageGroups": {
+    "adult": "18+ vuotias",
+    "minor": "alle 18-vuotias"
+  },
+  "courseTypes": {
+    "basic": "Peruskurssi",
+    "advanced": "Jatkokurssi",
+    "fitness": "Kuntopotkis"
+  },
+  "footer": {
+    "copyright": "© 2026 Oulun Kickboxing ry",
+    "allRightsReserved": "Kaikki oikeudet pidätetään"
+  }
+}

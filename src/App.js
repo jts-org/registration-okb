@@ -12,10 +12,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
 import { TABS, TAB_LABEL_TO_KEY, COACHING_SESSION_OPTIONS, SESSION_OPTIONS } from './constants';
 import { getSessionsAndCamps, prefetchData } from './integrations/Api';
+import { ConfigurationProvider, useAppConfig, useTranslation } from './contexts/ConfigContext';
 
 const tabs = Object.values(TABS);
 
-function App() {
+// Inner app component that uses configuration context
+function AppContent() {
   const { setLoading, isLoading: globalIsLoading } = useContext(LoadingContext);
   const [activeTab, setActiveTab] = useState(TABS.MAIN);
   const { settings, reloadSettings, isLoading } = useSettings();
@@ -26,6 +28,10 @@ function App() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [pendingTab, setPendingTab] = useState(null); // Track which protected tab user is trying to access
+  
+  // Get configuration and translations
+  const config = useAppConfig();
+  const t = useTranslation();
 
   // Helpers: local date handling and label derivation
   const toLocalYMD = (dateLike) => new Date(dateLike).toLocaleDateString('en-CA');
@@ -38,13 +44,28 @@ function App() {
       // Row schema: [id, type, name, coach, date1, count1, date2, count2, ...]
       const campName = row[2];
       const rest = row.slice(4);
+      
+      // Only process valid date/count pairs (skip empty or invalid entries)
       for (let i = 0; i + 1 < rest.length; i += 2) {
         const dateStr = rest[i];
-        const count = Number(rest[i + 1]) || 0;
+        const countVal = rest[i + 1];
+        
+        // Skip if date is empty/null or count is not a valid number
+        if (!dateStr || dateStr === '' || dateStr === null) continue;
+        
+        const count = Number(countVal);
+        if (!Number.isFinite(count) || count <= 0) continue;
+        
         const parsed = new Date(dateStr);
         const parsedLocal = toLocalYMD(parsed);
+        
         if (isValidDate(parsed) && parsedLocal === todayLocal) {
-          for (let k = 1; k <= count; k++) labels.push(`${campName} SESSIO ${k}`);
+          // Only add sessions for THIS specific day that matches today
+          for (let k = 1; k <= count; k++) {
+            labels.push(`${campName} SESSIO ${k}`);
+          }
+          // Once we found today's date for this camp, don't process other dates
+          break;
         }
       }
     });
@@ -170,8 +191,8 @@ function App() {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo no-spin" alt="logo" />
-          <h1>Oulun Kickboxing ry</h1>
-          <h2>Session Registration System</h2>
+          <h1>{config.branding.clubName}</h1>
+          <h2>{t('app.subtitle')}</h2>
         </header>
         {activeTab === TABS.MAIN && <MainMenu selected={activeTab} onSelect={onActiveTabChange} />}
         {activeTab === TABS.TRAINING_SESSION && <RegisterTrainingSession onSelect={onActiveTabChange} sessionOptions={trainingSessionOptions} />}
@@ -210,6 +231,15 @@ function App() {
       </div>
   );
 
+}
+
+// Main App component with ConfigurationProvider wrapper
+function App() {
+  return (
+    <ConfigurationProvider>
+      <AppContent />
+    </ConfigurationProvider>
+  );
 }
 
 export default App;

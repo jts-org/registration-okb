@@ -215,9 +215,14 @@ function CampManagement({ onLoading }) {
                 <input
                   type="number"
                   style={styles.sessionsInput}
-                  value={day.sessions}
+                  value={day.sessions === '' ? '' : day.sessions}
                   min="1"
-                  onChange={(e) => handleDayChange(index, 'sessions', parseInt(e.target.value) || 1)}
+                  onChange={(e) => handleDayChange(index, 'sessions', e.target.value === '' ? '' : parseInt(e.target.value) || '')}
+                  onBlur={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (!val || val < 1) handleDayChange(index, 'sessions', 1);
+                  }}
+                  onFocus={(e) => e.target.select()}
                 />
                 <span style={styles.sessionsLabel}>sessio(ta)</span>
                 {editingCamp.days.length > 1 && (
