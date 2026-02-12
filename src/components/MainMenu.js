@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useRef, useMemo } from "react";
 import ToggleButtons from "./common/ToggleButtons";
 import { TABS } from "../constants";

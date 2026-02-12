@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 const sheetId = "1syi5ytWjxheM7PWzW40MxTPaHSUUxLUsSYTaNRFrlMQ";
 const settingsSheetName = "settings";
 const traineesSheetName = "trainees";

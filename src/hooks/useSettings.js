@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { getSettings } from '../integrations/Api';
 

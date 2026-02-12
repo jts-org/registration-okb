@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useState, useContext } from 'react';
 import { LoadingContext } from '../contexts/LoadingContext';
 import { SESSION_OPTIONS } from '../constants';

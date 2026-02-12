@@ -2,6 +2,7 @@
   "name": "registration-okb",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://jts-org.github.io/registration-okb",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -19,7 +20,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -40,6 +43,7 @@
     ]
   },
   "devDependencies": {
-    "baseline-browser-mapping": "^2.9.14"
+    "baseline-browser-mapping": "^2.9.14",
+    "gh-pages": "^6.3.0"
   }
 }

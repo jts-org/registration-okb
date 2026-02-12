@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { createContext, useState, useCallback } from 'react';
 
 export const LoadingContext = createContext({

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import oqmLogo from '../oqm_logo.png';
 import reactLogo from '../logo.svg';
 

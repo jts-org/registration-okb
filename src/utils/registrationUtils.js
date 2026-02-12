@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 export function findMatchingRegistrationEntry(registration, traineeRegistrations) {
   const sameCalendarDay = (a, b) => {
     if (!(a instanceof Date) || !(b instanceof Date)) return false;

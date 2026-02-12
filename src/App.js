@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useState, useEffect, useContext, useRef } from 'react';
 import logo from './logo_new_reversed_colors.png';
 import './App.css';

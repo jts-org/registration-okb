@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { getSessions, addSession, updateSession, deleteSession } from '../../integrations/Api';
 import { SkeletonList } from '../common/Skeleton';

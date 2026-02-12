@@ -1,4 +1,9 @@
 /**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
+/**
  * Main Application Configuration
  * 
  * This file contains all customizable settings for the sports club registration app.

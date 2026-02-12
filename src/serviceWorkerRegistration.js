@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 // This service worker registration file enables caching for faster loads
 // and offline support.
 

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { TRAINEE_SESSION_REGISTRATION_FORM_LABELS } from "../constants";
 
 function ConfirmationDialog({data, onConfirm, onCancel}) {

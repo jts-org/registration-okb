@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useState, useRef } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import DatePicker from './common/DatePicker';

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { useState, useContext, useCallback } from 'react';
 import { getRegistrations } from '../integrations/Api';
 import { dateStringToDate, getLocalDate } from '../utils/registrationUtils';

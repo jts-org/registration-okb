@@ -1,4 +1,9 @@
 /**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
+/**
  * Theme Configuration
  * 
  * Defines color schemes and visual styling for the application.

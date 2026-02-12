@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://script.google.com/macros/s/';
 const DEPLOYMENT_ID = process.env.REACT_APP_API_DEPLOYMENT_ID;
 

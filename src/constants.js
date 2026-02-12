@@ -1,4 +1,9 @@
 /**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
+/**
  * Application Constants
  * 
  * This file integrates with app.config.js and locale files for customizable values.

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 export function stringToDate(dateStr) {
   const d = new Date(dateStr);
   return isNaN(d) ? null : d;

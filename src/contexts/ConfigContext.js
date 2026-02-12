@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import appConfig from '../config/app.config';
 import { getTheme, applyTheme } from '../config/theme.config';

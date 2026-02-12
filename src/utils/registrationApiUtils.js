@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2025-2026 Jouni Sipola
+ * All rights reserved.
+ */
+
 import { postRegistration } from '../integrations/Api';
 
 // Robust helper to post a registration and extract a numeric id from common response shapes.
