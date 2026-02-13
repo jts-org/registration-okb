@@ -21,8 +21,6 @@ import { TABS, TAB_LABEL_TO_KEY, COACHING_SESSION_OPTIONS, SESSION_OPTIONS } fro
 import { getSessionsAndCamps, prefetchData } from './integrations/Api';
 import { ConfigurationProvider, useAppConfig, useTranslation } from './contexts/ConfigContext';
 
-const tabs = Object.values(TABS);
-
 // Inner app component that uses configuration context
 function AppContent() {
   const { setLoading, isLoading: globalIsLoading } = useContext(LoadingContext);
@@ -31,7 +29,7 @@ function AppContent() {
   const prevTabRef = useRef(activeTab);
 
   const [trainingSessionOptions, setTrainingSessionOptions] = useState(SESSION_OPTIONS);
-  const [coachingSessionOptions, setCoachingSessionOptions] = useState([...COACHING_SESSION_OPTIONS, ...SESSION_OPTIONS]);
+  const [coachingSessionOptions] = useState([...COACHING_SESSION_OPTIONS, ...SESSION_OPTIONS]);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showCoachAccessDialog, setShowCoachAccessDialog] = useState(false);
   const [passwordError, setPasswordError] = useState('');

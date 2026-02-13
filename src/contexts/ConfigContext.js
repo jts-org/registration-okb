@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import appConfig from '../config/app.config';
 import { getTheme, applyTheme } from '../config/theme.config';
 import { locales } from '../config';
@@ -147,7 +147,7 @@ const FeatureFlagsContext = createContext(null);
 
 export function FeatureFlagsProvider({ children, overrides = {} }) {
   const config = useContext(AppConfigContext);
-  const features = { ...config?.features, ...overrides };
+  const features = useMemo(() => ({ ...config?.features, ...overrides }), [config?.features, overrides]);
 
   const isEnabled = useCallback((featureName) => {
     return features[featureName] === true;
@@ -213,7 +213,7 @@ function deepMerge(target, source) {
   return result;
 }
 
-export default {
+const ConfigContextExports = {
   AppConfigProvider,
   useAppConfig,
   ThemeProvider,
@@ -226,3 +226,4 @@ export default {
   useFeature,
   ConfigurationProvider,
 };
+export default ConfigContextExports;

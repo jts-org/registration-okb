@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtons from "./common/ToggleButtons";
 import DatePicker from './common/DatePicker';

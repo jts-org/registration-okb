@@ -30,6 +30,7 @@ export default function useRegisterCoachingSessionForm(sessions, onCreate) {
 
   useEffect(() => {
     initializeForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessions]);
 
   const handleSessionButtonClicked = (option) => setSelectedSession(option);

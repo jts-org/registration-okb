@@ -37,6 +37,7 @@ export default function useRegisterTrainingSessionForm(sessions, ageGroups, onCr
 
   useEffect(() => {
     initializeForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessions]);
 
   const handleSessionButtonClicked = (option) => setSelectedSession(option);

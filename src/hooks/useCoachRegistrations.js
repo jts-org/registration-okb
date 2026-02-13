@@ -5,7 +5,7 @@
 
 import { useState, useContext, useCallback } from 'react';
 import { getRegistrations } from '../integrations/Api';
-import { dateStringToDate, getLocalDate } from '../utils/registrationUtils';
+import { dateStringToDate } from '../utils/registrationUtils';
 import { LoadingContext } from '../contexts/LoadingContext';
 import register from '../utils/registrationApiUtils';
 import { findMatchingRegistrationEntry } from '../utils/registrationUtils';

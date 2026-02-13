@@ -188,4 +188,5 @@ export function applyTheme(theme) {
   });
 }
 
-export default { darkTheme, lightTheme, sportThemes, getTheme, applyTheme };
+const themeConfig = { darkTheme, lightTheme, sportThemes, getTheme, applyTheme };
+export default themeConfig;
