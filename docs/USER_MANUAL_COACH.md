@@ -8,15 +8,18 @@
 
 1. [Johdanto](#johdanto)
 2. [Järjestelmään kirjautuminen](#järjestelmään-kirjautuminen)
-3. [Valmennussessioon ilmoittautuminen](#valmennussessioon-ilmoittautuminen)
-4. [Harrastajien ilmoittautumiset](#harrastajien-ilmoittautumiset)
-5. [Usein kysytyt kysymykset](#usein-kysytyt-kysymykset)
+3. [PIN-koodin rekisteröinti](#pin-koodin-rekisteröinti)
+4. [Valmennussessioon ilmoittautuminen](#valmennussessioon-ilmoittautuminen)
+5. [Harrastajien ilmoittautumiset](#harrastajien-ilmoittautumiset)
+6. [Usein kysytyt kysymykset](#usein-kysytyt-kysymykset)
 
 ---
 
 ## Johdanto
 
 Tämä ohje on tarkoitettu Oulun Kickboxing ry:n vetäjille ja ohjaajille. Järjestelmän avulla voit rekisteröidä oman osallistumisesi valmennussessioihin sekä seurata harrastajien ilmoittautumisia.
+
+**Uutta:** Voit rekisteröidä henkilökohtaisen PIN-koodin, jolloin nimesi täytetään automaattisesti ilmoittautumislomakkeelle.
 
 ---
 
@@ -32,24 +35,81 @@ Tämä ohje on tarkoitettu Oulun Kickboxing ry:n vetäjille ja ohjaajille. Järj
 
 ### Vetäjänäkymään kirjautuminen
 
-1. Klikkaa **"Vetäjät"**-painiketta
-2. Näet salasanaikkunan otsikolla **"Vetäjän kirjautuminen"**
-3. Syötä vetäjien salasana
-4. Klikkaa **"OK"**
+Klikkaa **"Vetäjät"**-painiketta. Näet kirjautumisikkunan, jossa on kaksi vaihtoehtoa:
 
-**Huom!** Jos syötät väärän salasanan:
-- Näet virheilmoituksen "Väärä salasana"
-- Järjestelmä palaa automaattisesti päävalikkoon
+#### Vaihtoehto 1: Kirjaudu PIN-koodilla (suositeltu)
+
+Jos olet rekisteröinyt henkilökohtaisen PIN-koodin:
+
+1. Syötä 4-6 numeroinen PIN-koodisi
+2. Klikkaa **"Kirjaudu"**
+3. Nimesi täytetään automaattisesti ilmoittautumislomakkeelle
+
+**Hyödyt:**
+- Ei tarvitse kirjoittaa nimeä joka kerta
+- Nopea kirjautuminen
+
+#### Vaihtoehto 2: Kirjaudu salasanalla
+
+Jos et ole rekisteröinyt PIN-koodia tai haluat kirjautua ilman sitä:
+
+1. Klikkaa **"Jatka salasanalla"** -linkkiä
+2. Syötä vetäjien yhteinen salasana
+3. Klikkaa **"Kirjaudu"**
+4. Täytä nimesi manuaalisesti ilmoittautumislomakkeella
+
+**Huom!** Virheellisellä PIN-koodilla tai salasanalla näet virheilmoituksen.
 
 Jos klikkaat **"Peruuta"**, palaat päävalikkoon.
 
 ---
 
+## PIN-koodin rekisteröinti
+
+### Uuden PIN-koodin luominen
+
+Jos sinulla ei vielä ole PIN-koodia, voit rekisteröidä sen:
+
+1. Klikkaa **"Vetäjät"**-painiketta päävalikossa
+2. Kirjaudu sisään salasanalla (klikkaa "Jatka salasanalla")
+3. Näet ilmoittautumissivulla **"Et ole kirjautunut"** -tekstin punaisella
+4. Klikkaa **"Kirjaudu PIN-koodilla"** -painiketta
+5. Klikkaa **"Rekisteröidy tästä"** -linkkiä dialogissa
+6. Täytä rekisteröintilomake:
+   - **Etunimi** - Kirjoita etunimesi
+   - **Sukunimi** - Kirjoita sukunimesi
+   - **Alias (valinnainen)** - Näyttönimi raporteissa (esim. "Coach Matti")
+   - **PIN-koodi** - Valitse 4-6 numeroinen PIN
+   - **Vahvista PIN** - Syötä sama PIN uudelleen
+7. Klikkaa **"Rekisteröi"**
+
+**Huom!** 
+- PIN-koodin täytyy olla uniikki - sama PIN ei voi olla kahdella vetäjällä
+- Muista PIN-koodisi! Jos unohdat sen, ota yhteyttä ylläpitäjään.
+
+### Alias-toiminto
+
+Alias on valinnainen näyttönimi, joka näkyy:
+- Vetäjien kuukausiraporteissa
+- Muissa tilastoissa
+
+Jos et anna aliasta, nimesi näkyy muodossa "Etunimi Sukunimi".
+
+---
+
 ## Valmennussessioon ilmoittautuminen
+
+### Kirjautunut vetäjä (PIN-koodilla)
+
+Jos kirjauduit PIN-koodilla, näet sivun yläreunassa vihreän palkin:
+- **"Kirjautunut: [Nimesi]"**
+- **"Kirjaudu ulos"** -painike
+
+Nimikentät on täytetty valmiiksi ja ne ovat lukittuja.
 
 ### Vaihe 1: Valitse ryhmä
 
-Kirjautumisen jälkeen näet vetäjän rekisteröintilomakkeen. Valitse ryhmä, jota olet vetämässä:
+Valitse ryhmä, jota olet vetämässä:
 
 | Ryhmä | Kuvaus |
 |-------|--------|
@@ -64,9 +124,9 @@ Klikkaa haluamaasi ryhmää - valittu ryhmä korostuu vihreällä.
 
 Järjestelmä näyttää automaattisesti kuluvan päivän päivämäärän. Voit muuttaa päivämäärää tarvittaessa kalenterivalitsimesta.
 
-### Vaihe 3: Syötä nimesi
+### Vaihe 3: Syötä nimesi (vain ilman PIN-kirjautumista)
 
-Täytä seuraavat kentät:
+Jos kirjauduit salasanalla, täytä:
 
 1. **Etunimi** - Kirjoita etunimesi
 2. **Sukunimi** - Kirjoita sukunimesi
@@ -89,6 +149,8 @@ Täytä seuraavat kentät:
 
 Ilmoittautumisen jälkeen voit palata päävalikkoon klikkaamalla **"Päävalikko"**-painiketta sivun yläreunassa.
 
+**Huom!** Kun poistut vetäjäsivulta, kirjaudut automaattisesti ulos. Seuraavalla kerralla sinun täytyy syöttää PIN-koodisi uudelleen.
+
 ---
 
 ## Harrastajien ilmoittautumiset
@@ -104,7 +166,9 @@ Vetäjänä sinulla on pääsy Google Sheets -taulukkoon, jossa näet kaikki har
 | C | Sukunimi |
 | D | Ikäryhmä |
 | E | Harjoitusryhmä |
-| F | Päivämäärä || G | Ikä (vain alle 18-vuotiaat) |
+| F | Päivämäärä |
+| G | Ikä (vain alle 18-vuotiaat) |
+
 ### Raportit
 
 Järjestelmä generoi automaattisesti raportteja eri harjoitusryhmille:
@@ -119,9 +183,17 @@ Järjestelmä generoi automaattisesti raportteja eri harjoitusryhmille:
 
 ## Usein kysytyt kysymykset
 
+### Unohdin PIN-koodini, mitä teen?
+
+Voit kirjautua sisään vetäjien yhteisellä salasanalla ja rekisteröidä uuden PIN-koodin. Huom: et voi käyttää samaa nimeä uudelleen - ota yhteyttä ylläpitäjään vanhan PIN-koodin poistamiseksi.
+
 ### Unohdin salasanan, mitä teen?
 
 Ota yhteyttä seuran ylläpitäjään (admin), joka voi antaa salasanan tai vaihtaa sen.
+
+### Miksi en voi muuttaa nimeäni PIN-kirjautumisen jälkeen?
+
+PIN-koodiin on sidottu nimesi, joten nimikentät lukitaan automaattisesti. Jos tarvitset muuttaa nimeäsi, kirjaudu ulos ja rekisteröi uusi PIN-koodi oikeilla tiedoilla.
 
 ### Voinko nähdä kuka on ilmoittautunut treeniin?
 
@@ -139,28 +211,39 @@ Kyllä, voit ilmoittautua vetäjäksi useampaan ryhmään samana päivänä.
 
 Ei, vetäjien ilmoittautumiset tallentuvat erilliselle välilehdelle (coaches).
 
-### Mitä eroa on vetäjän ja harrastajan ilmoittautumisessa?
+### Mitä hyötyä PIN-koodista on?
 
-| Ominaisuus | Harrastaja | Vetäjä |
-|------------|------------|--------|
-| Salasana | Ei vaadita | Vaaditaan |
-| Ikäryhmän valinta | Kyllä | Ei |
-| Tallennuspaikka | trainees-välilehti | coaches-välilehti |
+| Kirjautumistapa | Edut | Haitat |
+|-----------------|------|--------|
+| PIN-koodi | Nopea, ei tarvitse kirjoittaa nimeä | Täytyy muistaa PIN |
+| Salasana | Ei tarvitse rekisteröityä | Nimi kirjoitettava joka kerta |
+
+### Mikä on alias?
+
+Alias on valinnainen näyttönimi, joka näkyy raporteissa. Jos esimerkiksi haluat näkyä nimellä "Coach Matti" etkä "Matti Virtanen", voit asettaa sen rekisteröinnin yhteydessä.
 
 ---
 
-## Salasanan hallinta
+## Salasanan ja PIN-koodin hallinta
 
-### Salasanan vaihtaminen
+### Vetäjien salasanan vaihtaminen
 
-Salasana tallennetaan Google Sheets -taulukon **settings**-välilehdelle:
+Salasana tallennetaan Google Sheets -taulukon **settings**-välilehdelle. Ylläpitäjä voi vaihtaa salasanan muokkaamalla taulukkoa suoraan.
 
-| Rivi | Tyyppi | Salasana |
-|------|--------|----------|
-| 1 | admin | [admin-salasana] |
-| 2 | coach | [vetäjä-salasana] |
+### PIN-koodien hallinta
 
-Ylläpitäjä voi vaihtaa salasanan muokkaamalla taulukkoa suoraan.
+PIN-koodit tallennetaan **coach_login**-välilehdelle:
+
+| Sarake | Sisältö |
+|--------|---------|
+| id | Vetäjän ID |
+| firstName | Etunimi |
+| lastName | Sukunimi |
+| alias | Näyttönimi |
+| pin | PIN-koodi |
+| createdAt | Rekisteröintiaika |
+
+Ylläpitäjä voi poistaa tai muokata PIN-koodeja suoraan taulukosta.
 
 ---
 
