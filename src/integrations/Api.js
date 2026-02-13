@@ -253,4 +253,94 @@ const getCoachesExperience = async () => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience };
+// ============================================
+// COACH LOGIN API FUNCTIONS
+// ============================================
+
+/**
+ * Get all coach logins (without PIN for security)
+ */
+const getCoachLogins = async () => {
+  try {
+    return await get({ fetch: 'coach_logins' });
+  } catch (error) {
+    console.error('Error fetching coach logins:', error);
+    throw error;
+  }
+};
+
+/**
+ * Register a new coach with PIN
+ * @param {Object} coachData - { firstName, lastName, alias?, pin }
+ * @returns {Object} - { result, id }
+ */
+const registerCoachPin = async (coachData) => {
+  try {
+    const payload = {
+      path: { role: 'coach_login', operation: 'register' },
+      data: coachData
+    };
+    const response = await post(payload);
+    return await response.json();
+  } catch (error) {
+    console.error('Error registering coach PIN:', error);
+    throw error;
+  }
+};
+
+/**
+ * Verify coach PIN and get coach data
+ * @param {string} pin 
+ * @returns {Object} - { result, coach, message }
+ */
+const verifyCoachPin = async (pin) => {
+  try {
+    const payload = {
+      path: { role: 'coach_login', operation: 'verify' },
+      data: { pin }
+    };
+    const response = await post(payload);
+    return await response.json();
+  } catch (error) {
+    console.error('Error verifying coach PIN:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update coach login (alias or PIN)
+ * @param {Object} updateData - { id, alias?, pin? }
+ */
+const updateCoachLogin = async (updateData) => {
+  try {
+    const payload = {
+      path: { role: 'coach_login', operation: 'update' },
+      data: updateData
+    };
+    const response = await post(payload);
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating coach login:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete coach login
+ * @param {number} coachId 
+ */
+const deleteCoachLogin = async (coachId) => {
+  try {
+    const payload = {
+      path: { role: 'coach_login', operation: 'delete' },
+      data: { id: coachId }
+    };
+    const response = await post(payload);
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting coach login:', error);
+    throw error;
+  }
+};
+
+export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };

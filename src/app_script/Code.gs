@@ -10,6 +10,7 @@ const coachesSheetName = "coaches";
 const sessionsSheetName = "sessions";
 const campsSheetName = "camps";
 const coachesExperienceSheetName = "coaches_experience";
+const coachLoginSheetName = "coach_login";
 
 function doPost(e) {
   // Parse the full request body
@@ -54,6 +55,20 @@ function doPost(e) {
       } else if (operation === "delete") {
         id = deleteSession(holder);
       }
+    } else if (role === "coach_login") {
+      if (operation === "register") {
+        id = registerCoachLogin(holder);
+      } else if (operation === "verify") {
+        // Special case: verify returns coach data, not just id
+        const verifyResult = verifyCoachPin(holder);
+        return ContentService
+          .createTextOutput(JSON.stringify(verifyResult))
+          .setMimeType(ContentService.MimeType.JSON);
+      } else if (operation === "update") {
+        id = updateCoachLogin(holder);
+      } else if (operation === "delete") {
+        id = deleteCoachLogin(holder);
+      }
     } else {
       result = "error";
     }
@@ -93,6 +108,8 @@ function doGet(e) {
     result = getCamps();
   } else if (fetchType === "coaches_experience") {
     result = getCoachesExperience();
+  } else if (fetchType === "coach_logins") {
+    result = getCoachLogins();
   } else {
     result = { error: "Invalid fetch type: " + (fetchType || "undefined") };
   }
@@ -190,6 +207,205 @@ function getSessions() {
 function getCamps() {
   return normalizeDatesInArray(getSheetData(campsSheetName));
 }
+
+// ============================================
+// COACH LOGIN FUNCTIONS
+// ============================================
+
+/**
+ * Get all coach login records
+ * Returns array of [id, firstName, lastName, alias, createdAt]
+ * PIN is intentionally excluded for security
+ */
+function getCoachLogins() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName(coachLoginSheetName);
+  
+  if (!sheet) {
+    return [];
+  }
+  
+  const data = sheet.getDataRange().getValues().slice(1); // Skip header
+  // Return without PIN (column index 4)
+  return data.map(row => [row[0], row[1], row[2], row[3], row[5]]);
+}
+
+/**
+ * Get a map of coach names to their aliases
+ * Returns { "FirstName LastName": "Alias" } for coaches who have an alias set
+ */
+function getCoachAliasMap() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName(coachLoginSheetName);
+  
+  if (!sheet) {
+    return {};
+  }
+  
+  const data = sheet.getDataRange().getValues().slice(1); // Skip header
+  const aliasMap = {};
+  
+  data.forEach(row => {
+    const firstName = String(row[1] || '').trim();
+    const lastName = String(row[2] || '').trim();
+    const alias = String(row[3] || '').trim();
+    
+    if (firstName && lastName && alias) {
+      const fullName = `${firstName} ${lastName}`;
+      aliasMap[fullName] = alias;
+    }
+  });
+  
+  return aliasMap;
+}
+
+/**
+ * Register a new coach login with PIN
+ * @param {Object} holder - { firstName, lastName, alias, pin }
+ * @returns {number|string} - ID of created record or 'exists' if already registered
+ */
+function registerCoachLogin(holder) {
+  const ss = getSpreadsheet();
+  let sheet = ss.getSheetByName(coachLoginSheetName);
+  
+  // Create sheet if it doesn't exist
+  if (!sheet) {
+    sheet = ss.insertSheet(coachLoginSheetName);
+    sheet.getRange(1, 1, 1, 6).setValues([['id', 'firstName', 'lastName', 'alias', 'pin', 'createdAt']]);
+    SpreadsheetApp.flush();
+  }
+  
+  const firstName = (holder.firstName || '').trim();
+  const lastName = (holder.lastName || '').trim();
+  const alias = (holder.alias || '').trim();
+  const pin = (holder.pin || '').toString();
+  
+  // Check if coach already exists
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1].toLowerCase() === firstName.toLowerCase() && 
+        data[i][2].toLowerCase() === lastName.toLowerCase()) {
+      return 'exists';
+    }
+  }
+  
+  // Check if PIN is already in use by another coach
+  for (let i = 1; i < data.length; i++) {
+    const existingPin = (data[i][4] || '').toString();
+    if (existingPin === pin) {
+      return 'pin_taken';
+    }
+  }
+  
+  // Generate new ID
+  const lastRow = sheet.getLastRow();
+  const newId = lastRow > 1 ? Math.max(...data.slice(1).map(r => r[0] || 0)) + 1 : 1;
+  
+  // Add new coach login
+  const timestamp = new Date().toISOString();
+  sheet.appendRow([newId, firstName, lastName, alias, pin, timestamp]);
+  
+  return newId;
+}
+
+/**
+ * Verify coach PIN and return coach data
+ * @param {Object} holder - { pin }
+ * @returns {Object} - { result: 'success'|'error', coach: {...} | null, message: string }
+ */
+function verifyCoachPin(holder) {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName(coachLoginSheetName);
+  
+  if (!sheet) {
+    return { result: 'error', coach: null, message: 'not_found' };
+  }
+  
+  const pin = (holder.pin || '').toString();
+  
+  if (!pin) {
+    return { result: 'error', coach: null, message: 'wrong_pin' };
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < data.length; i++) {
+    const rowPin = (data[i][4] || '').toString();
+    
+    if (rowPin === pin) {
+      return {
+        result: 'success',
+        coach: {
+          id: data[i][0],
+          firstName: data[i][1],
+          lastName: data[i][2],
+          alias: data[i][3] || ''
+        },
+        message: 'verified'
+      };
+    }
+  }
+  
+  return { result: 'error', coach: null, message: 'wrong_pin' };
+}
+
+/**
+ * Update coach login (alias or PIN)
+ * @param {Object} holder - { id, alias?, pin? }
+ * @returns {number} - ID of updated record
+ */
+function updateCoachLogin(holder) {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName(coachLoginSheetName);
+  
+  if (!sheet) {
+    throw new Error('Coach login sheet not found');
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const id = Number(holder.id);
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === id) {
+      if (holder.alias !== undefined) {
+        sheet.getRange(i + 1, 4).setValue(holder.alias);
+      }
+      if (holder.pin !== undefined) {
+        sheet.getRange(i + 1, 5).setValue(holder.pin.toString());
+      }
+      return id;
+    }
+  }
+  
+  throw new Error('Coach login not found');
+}
+
+/**
+ * Delete coach login
+ * @param {Object} holder - { id }
+ * @returns {number} - ID of deleted record
+ */
+function deleteCoachLogin(holder) {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName(coachLoginSheetName);
+  
+  if (!sheet) {
+    throw new Error('Coach login sheet not found');
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const id = Number(holder.id);
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === id) {
+      sheet.deleteRow(i + 1);
+      return id;
+    }
+  }
+  
+  throw new Error('Coach login not found');
+}
+
 
 /**
  * Get coaches experience data
@@ -872,6 +1088,9 @@ function generateCoachMonthlyStats() {
   for (let m = 1; m <= 12; m++) header.push(m);
   targetSheet.getRange(1, 1, 1, header.length).setValues([header]);
 
+  // Load coach aliases from coach_login sheet
+  const aliasMap = getCoachAliasMap();
+
   // Luetaan coaches-data
   const data = coachesSheet.getRange(
     2, 1, coachesSheet.getLastRow() - 1, 5
@@ -904,7 +1123,9 @@ function generateCoachMonthlyStats() {
   const sortedNames = Object.keys(coachMap).sort();
 
   sortedNames.forEach(name => {
-    const row = [name, coachMap[name].total];
+    // Use alias if available, otherwise use full name
+    const displayName = aliasMap[name] || name;
+    const row = [displayName, coachMap[name].total];
     for (let m = 1; m <= 12; m++) {
       row.push(coachMap[name][m]);
     }
