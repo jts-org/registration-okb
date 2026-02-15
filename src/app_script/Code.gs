@@ -11,6 +11,7 @@ const sessionsSheetName = "sessions";
 const campsSheetName = "camps";
 const coachesExperienceSheetName = "coaches_experience";
 const coachLoginSheetName = "coach_login";
+const weeklyScheduleSheetName = "weekly_schedule";
 
 function doPost(e) {
   // Parse the full request body
@@ -110,6 +111,8 @@ function doGet(e) {
     result = getCoachesExperience();
   } else if (fetchType === "coach_logins") {
     result = getCoachLogins();
+  } else if (fetchType === "upcoming_sessions") {
+    result = getUpcomingSessionsWithCoaches();
   } else {
     result = { error: "Invalid fetch type: " + (fetchType || "undefined") };
   }
@@ -406,6 +409,166 @@ function deleteCoachLogin(holder) {
   throw new Error('Coach login not found');
 }
 
+// ============================================
+// WEEKLY SCHEDULE & QUICK REGISTRATION
+// ============================================
+
+/**
+ * Get Monday of the current week
+ * @param {Date} date - Reference date
+ * @returns {Date} - Monday of that week
+ */
+function getStartOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+  return new Date(d.setDate(diff));
+}
+
+/**
+ * Get upcoming sessions for current and next week with registered coaches
+ * Returns sessions with dates and their registered coaches
+ * Only shows sessions where the course is currently active (within start/end dates)
+ * @returns {Array} - Array of session objects
+ */
+function getUpcomingSessionsWithCoaches() {
+  const ss = getSpreadsheet();
+  const scheduleSheet = ss.getSheetByName(weeklyScheduleSheetName);
+  const coachesSheet = ss.getSheetByName(coachesSheetName);
+  const sessionsSheet = ss.getSheetByName(sessionsSheetName);
+  
+  if (!scheduleSheet) {
+    return { error: 'Weekly schedule sheet not found. Please create a sheet named "weekly_schedule".' };
+  }
+  
+  const scheduleData = scheduleSheet.getDataRange().getValues().slice(1); // Skip header
+  let coachesData = coachesSheet ? coachesSheet.getDataRange().getValues().slice(1) : [];
+  // Filter out rows where Realized (col 5) is not TRUE
+  coachesData = coachesData.filter(row => {
+    // If column missing, treat as TRUE
+    if (row.length < 6) return true;
+    const realized = row[5];
+    return realized === true || realized === 'TRUE' || realized === 1 || realized === '';
+  });
+  const sessionsData = sessionsSheet ? sessionsSheet.getDataRange().getValues().slice(1) : [];
+  const aliasMap = getCoachAliasMap();
+  
+  const tz = Session.getScriptTimeZone();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Build map of sessionType -> { startDate, endDate } from sessions sheet
+  // Sessions schema: [ID, Course, Name, Start, End]
+  const courseActivePeriods = {};
+  sessionsData.forEach(row => {
+    const name = String(row[2] || '').toUpperCase();
+    const startDate = row[3];
+    const endDate = row[4];
+    if (name && startDate && endDate) {
+      courseActivePeriods[name] = {
+        start: startDate instanceof Date ? startDate : new Date(startDate),
+        end: endDate instanceof Date ? endDate : new Date(endDate)
+      };
+    }
+  });
+  
+  const sessions = [];
+  const startOfWeek = getStartOfWeek(today);
+  
+  // Generate sessions for current week and next week (14 days)
+  for (let weekOffset = 0; weekOffset < 2; weekOffset++) {
+    for (let day = 0; day < 7; day++) {
+      const sessionDate = new Date(startOfWeek);
+      sessionDate.setDate(startOfWeek.getDate() + (weekOffset * 7) + day);
+      
+      // Skip past dates
+      if (sessionDate < today) continue;
+      
+      const weekday = day; // 0=Mon, 1=Tue, ..., 6=Sun
+      const dateStr = Utilities.formatDate(sessionDate, tz, 'yyyy-MM-dd');
+      
+      // Find scheduled sessions for this weekday
+      scheduleData.forEach(row => {
+        // Schema: [id, sessionType, weekday, startTime, endTime, location, active]
+        const isActive = row[6] === true || row[6] === 'TRUE' || row[6] === 1;
+        if (!isActive) return;
+        
+        // Parse weekday(s) - supports single value (1) or comma-separated (1,3)
+        const weekdayValue = String(row[2] || '');
+        const weekdays = weekdayValue.split(',').map(w => Number(w.trim()));
+        if (!weekdays.includes(weekday)) return;
+        
+        const sessionType = String(row[1] || '').toUpperCase();
+        
+        // Check if course is active for this date (from sessions sheet)
+        const activePeriod = courseActivePeriods[sessionType];
+        if (activePeriod) {
+          if (sessionDate < activePeriod.start || sessionDate > activePeriod.end) {
+            return; // Course not active on this date
+          }
+        }
+        
+        // Format time values - Google Sheets stores times as Date objects
+        let startTimeStr = '';
+        let endTimeStr = '';
+        const rawStartTime = row[3];
+        const rawEndTime = row[4];
+        
+        if (rawStartTime instanceof Date) {
+          startTimeStr = Utilities.formatDate(rawStartTime, tz, 'HH:mm');
+        } else if (rawStartTime) {
+          startTimeStr = String(rawStartTime);
+        }
+        
+        if (rawEndTime instanceof Date) {
+          endTimeStr = Utilities.formatDate(rawEndTime, tz, 'HH:mm');
+        } else if (rawEndTime) {
+          endTimeStr = String(rawEndTime);
+        }
+        
+        const location = row[5] || '';
+        
+        // Find coaches registered for this session + date
+        const registeredCoaches = coachesData
+          .filter(coach => {
+            const coachSession = String(coach[3] || '').toUpperCase();
+            const coachDate = coach[4];
+            let coachDateStr;
+            if (coachDate instanceof Date) {
+              coachDateStr = Utilities.formatDate(coachDate, tz, 'yyyy-MM-dd');
+            } else {
+              coachDateStr = String(coachDate || '');
+            }
+            return coachSession === sessionType && coachDateStr === dateStr;
+          })
+          .map(coach => {
+            const fullName = `${coach[1]} ${coach[2]}`;
+            return aliasMap[fullName] || fullName;
+          });
+        
+        sessions.push({
+          scheduleId: row[0],
+          sessionType: sessionType,
+          date: dateStr,
+          weekday: weekday,
+          startTime: startTimeStr,
+          endTime: endTimeStr,
+          location: String(location),
+          coaches: registeredCoaches
+        });
+      });
+    }
+  }
+  
+  // Sort by date, then by start time
+  sessions.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return a.startTime.localeCompare(b.startTime);
+  });
+  
+  return sessions;
+}
 
 /**
  * Get coaches experience data
@@ -1092,14 +1255,19 @@ function generateCoachMonthlyStats() {
   const aliasMap = getCoachAliasMap();
 
   // Luetaan coaches-data
-  const data = coachesSheet.getRange(
-    2, 1, coachesSheet.getLastRow() - 1, 5
-  ).getValues();
+  const data = coachesSheet.getDataRange().getValues().slice(1);
+  // Filter out rows where Realized (col 5) is not TRUE
+  const filteredData = data.filter(row => {
+    // If column missing, treat as TRUE
+    if (row.length < 6) return true;
+    const realized = row[5];
+    return realized === true || realized === 'TRUE' || realized === 1 || realized === '';
+  });
 
   // Map: { "Etunimi Sukunimi": { total: X, 1: count, 2: count, ... } }
   const coachMap = {};
 
-  data.forEach(row => {
+  filteredData.forEach(row => {
     const first = row[1];
     const last = row[2];
     const date = row[4];

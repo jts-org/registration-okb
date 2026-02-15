@@ -131,6 +131,19 @@ const getCamps = async (forceRefresh = false) => {
   }
 };
 
+/**
+ * Get upcoming sessions for current and next week with registered coaches
+ * Always fetches fresh data (no cache) to show latest registrations
+ */
+const getUpcomingSessions = async () => {
+  try {
+    return await get({ fetch: 'upcoming_sessions' }, false);
+  } catch (error) {
+    console.error('Error fetching upcoming sessions:', error);
+    throw error;
+  }
+};
+
 // Fetch both camps and sessions in parallel for faster loading
 const getSessionsAndCamps = async () => {
   try {
@@ -343,4 +356,4 @@ const deleteCoachLogin = async (coachId) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };
+export { getSettings, getRegistrations, getSessions, getCamps, getUpcomingSessions, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };

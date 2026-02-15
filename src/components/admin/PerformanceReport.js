@@ -189,27 +189,41 @@ function parseExperienceData(data) {
   return experienceMap;
 }
 
+
 function PerformanceReport({ onLoading }) {
   const [over18Data, setOver18Data] = useState([]);
   const [under18Data, setUnder18Data] = useState([]);
   const [coachData, setCoachData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  // fetchData can take forceRefresh to bypass cache
+  const fetchData = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
     try {
       // Fetch trainees, coaches, camps, and experience in parallel
       const [traineesResp, coachesResp, campsResp, experienceResp] = await Promise.all([
-        getRegistrations('trainee_registrations'),
-        getRegistrations('coach_registrations'),
-        getCamps(),
-        getCoachesExperience(),
+        getRegistrations('trainee_registrations', forceRefresh),
+        getRegistrations('coach_registrations', forceRefresh),
+        getCamps(forceRefresh),
+        getCoachesExperience(forceRefresh),
       ]);
 
       const trainees = traineesResp.data || [];
-      const coaches = coachesResp.data || [];
+      let coaches = coachesResp.data || [];
       const camps = campsResp.data || [];
       const experienceData = experienceResp.data || [];
+
+      console.log("Coaches raw data:", coaches);
+
+      // Filter out coaches where Realized (col 5) is not TRUE (or missing column, treat as TRUE)
+      coaches = coaches.filter(row => {
+        // If column missing, treat as TRUE
+        if (row.length < 6) return true;
+        const realized = row[5];
+        return realized === true || realized === 'TRUE' || realized === 1 || realized === '';
+      });
+
+      console.log("Filtered coaches data:", coaches);
 
       // Extract camp names from camps data
       // Camps format: [id, "camp", name, teacher, ...]
@@ -242,7 +256,7 @@ function PerformanceReport({ onLoading }) {
   }, [isLoading, onLoading]);
 
   const handleRefresh = () => {
-    fetchData();
+    fetchData(true); // Force refresh, bypass cache
   };
 
   if (isLoading) {

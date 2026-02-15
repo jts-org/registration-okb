@@ -3,12 +3,13 @@
  * All rights reserved.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import DatePicker from './common/DatePicker';
 import ConfirmationDialog from './ConfirmationDialog';
 import Snackbar from './common/Snackbar';
 import CoachPinDialog from './CoachPinDialog';
+import QuickCoachRegistration from './QuickCoachRegistration';
 import useRegisterCoachingSessionForm from '../hooks/useRegisterCoachingSessionForm';
 import useCoachLogin from '../hooks/useCoachLogin';
 import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../constants';
@@ -18,10 +19,20 @@ import ToggleButtons from './common/ToggleButtons';
 const tabs = [TAB_LABELS.MAIN];
 
 const COACH_LOGIN_LABELS = {
-  LOGIN: 'Kirjaudu PIN-koodilla',
+  LOGIN: 'Anna PIN-koodi',
   LOGOUT: 'Kirjaudu ulos',
   LOGGED_IN_AS: 'Kirjautunut:',
   NOT_LOGGED_IN: 'Et ole kirjautunut',
+};
+
+const REGISTRATION_MODE = {
+  QUICK: 'quick',
+  MANUAL: 'manual',
+};
+
+const MODE_LABELS = {
+  QUICK: 'Pikarekisteröinti',
+  MANUAL: 'Manuaalinen',
 };
 
 function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_SESSION_OPTIONS, viewAsCoach = false }) {
@@ -29,6 +40,8 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
   const [lastName, setLastName] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [showPinDialog, setShowPinDialog] = useState(false);
+  const [registrationMode, setRegistrationMode] = useState(REGISTRATION_MODE.QUICK);
+  const [quickRegisteringSession, setQuickRegisteringSession] = useState(null);
   
   const tabButtonRef = useRef(null);
   
@@ -128,6 +141,35 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
       severity: 'success',
     });
   };
+
+  // Quick registration handler
+  const handleQuickRegister = useCallback(async ({ sessionType, date, firstName: fName, lastName: lName }) => {
+    setQuickRegisteringSession(`${sessionType}-${date}`);
+    try {
+      const registrationData = {
+        firstName: fName,
+        lastName: lName,
+        sessionName: sessionType,
+        dates: new Date(date),
+      };
+      const result = await onNewCoachRegistration(registrationData);
+      if (result?.success) {
+        setSnackbar({
+          open: true,
+          message: result.exists ? NOTIFICATION_MESSAGES.REGISTRATION_EXISTS : NOTIFICATION_MESSAGES.REGISTRATION_SUCCESS,
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: NOTIFICATION_MESSAGES.REGISTRATION_ERROR,
+          severity: 'error',
+        });
+      }
+    } finally {
+      setQuickRegisteringSession(null);
+    }
+  }, [onNewCoachRegistration]);
 
   const {
     sessionButtonRef,
@@ -236,6 +278,58 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
         )}
       </div>
 
+      {/* Registration Mode Toggle */}
+      <div style={{ 
+        marginBottom: '20px',
+        display: 'flex',
+        gap: '8px'
+      }}>
+        <button
+          type="button"
+          onClick={() => setRegistrationMode(REGISTRATION_MODE.QUICK)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: registrationMode === REGISTRATION_MODE.QUICK ? '#1976d2' : '#e0e0e0',
+            color: registrationMode === REGISTRATION_MODE.QUICK ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: registrationMode === REGISTRATION_MODE.QUICK ? 600 : 400,
+          }}
+        >
+          {MODE_LABELS.QUICK}
+        </button>
+        <button
+          type="button"
+          onClick={() => setRegistrationMode(REGISTRATION_MODE.MANUAL)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: registrationMode === REGISTRATION_MODE.MANUAL ? '#1976d2' : '#e0e0e0',
+            color: registrationMode === REGISTRATION_MODE.MANUAL ? 'white' : '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: registrationMode === REGISTRATION_MODE.MANUAL ? 600 : 400,
+          }}
+        >
+          {MODE_LABELS.MANUAL}
+        </button>
+      </div>
+
+      {/* Quick Registration Mode */}
+      {registrationMode === REGISTRATION_MODE.QUICK && (
+        <QuickCoachRegistration
+          isAuthenticated={isAuthenticated}
+          coach={coach}
+          onRegister={handleQuickRegister}
+          isRegistering={!!quickRegisteringSession}
+          coachDisplayName={getDisplayName()}
+        />
+      )}
+
+      {/* Manual Registration Mode */}
+      {registrationMode === REGISTRATION_MODE.MANUAL && (
+        <>
       <h2>{COACH_SESSION_REGISTRATION_FORM_LABELS.COACH_REGISTRATION_TITLE}</h2>
       <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SELECT_COACHING_SESSION}</h3>
       <ToggleButtons
@@ -312,6 +406,8 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
         onConfirm={handleConfirmed}
         onCancel={handleCancelled} />
       }
+        </>
+      )}
       <Snackbar
         open={snackbar.open}
         message={snackbar.message}
