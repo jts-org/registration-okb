@@ -12,6 +12,8 @@ if (!DEPLOYMENT_ID) {
 
 const API_URL = `${API_BASE_URL}${DEPLOYMENT_ID}/exec`;
 
+console.log("API_URL: ", API_URL);
+
 // Simple in-memory cache with expiry
 const cache = new Map();
 const CACHE_TTL = 60000; // 1 minute cache

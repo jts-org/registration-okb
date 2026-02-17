@@ -447,8 +447,10 @@ function getUpcomingSessionsWithCoaches() {
   // Filter out rows where Realized (col 5) is not TRUE
   coachesData = coachesData.filter(row => {
     if (row.length < 6) return true;
-    const realized = String(row[5]).trim().toUpperCase();
-    return realized !== 'FALSE' && realized !== '0' && realized !== 'NO' && realized !== 'N' && realized !== false;
+    const realized = row[5];
+    if (typeof realized === 'boolean') return realized;
+    const trimmed = realized.trim().toUpperCase();
+    return trimmed !== 'FALSE' && trimmed !== '0' && trimmed !== 'NO' && trimmed !== 'N';
   });
   const sessionsData = sessionsSheet ? sessionsSheet.getDataRange().getValues().slice(1) : [];
   const aliasMap = getCoachAliasMap();
@@ -545,7 +547,7 @@ function getUpcomingSessionsWithCoaches() {
             const fullName = `${coach[1]} ${coach[2]}`;
             return aliasMap[fullName] || fullName;
           });
-        
+
         sessions.push({
           scheduleId: row[0],
           sessionType: sessionType,
@@ -559,7 +561,6 @@ function getUpcomingSessionsWithCoaches() {
       });
     }
   }
-  
   // Sort by date, then by start time
   sessions.sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);

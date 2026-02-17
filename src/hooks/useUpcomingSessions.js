@@ -37,25 +37,17 @@ export default function useUpcomingSessions() {
         return [];
       }
       
-      setSessions(Array.isArray(data) ? data : []);
-      console.log("Sessions: ", sessions);
-      return sessions;
-      /*
-      // Filter out coaches with Realized FALSE in session.coaches if needed (handled in backend, but double-check)
-      const filtered = Array.isArray(data) ? data.map(session => {
-        if (!session.coachDetails) return session;
-        console.log("session.coachDetails: ", session.coachDetails);
-        // If session.coachDetails exists, filter
-        return {
-          ...session,
-          coaches: Array.isArray(session.coachDetails)
-            ? session.coachDetails.filter(c => c.realized === true || c.realized === 'TRUE' || c.realized === 1 || c.realized === '')
-            : session.coaches
-        };
-      }) : [];
-      setSessions(filtered);
-      return filtered;
-      */
+      // Ensure each session has a coaches array (even if empty)
+      const normalizedData = Array.isArray(data)
+        ? data.map(session => ({
+            ...session,
+            coaches: Array.isArray(session.coaches) ? session.coaches : []
+          }))
+        : [];
+
+      setSessions(normalizedData);
+      console.log("Sessions (normalized): ", normalizedData);
+      return normalizedData;
     } catch (err) {
       console.error('Error fetching upcoming sessions:', err);
       setError('Virhe haettaessa sessioita');

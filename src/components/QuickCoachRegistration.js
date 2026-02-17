@@ -205,12 +205,17 @@ function QuickCoachRegistration({
   const isCoachRegistered = useCallback((session) => {
     if (!isAuthenticated || !coachDisplayName) return false;
     
+    // Ensure coaches array exists and has items
+    if (!session.coaches || !Array.isArray(session.coaches) || session.coaches.length === 0) {
+      return false;
+    }
+
     // Check if coach's display name or full name is in the coaches list
     const coachName = coachDisplayName.toLowerCase();
     const fullName = coach ? `${coach.firstName} ${coach.lastName}`.toLowerCase() : '';
     
     return session.coaches.some(c => {
-      const registered = c.toLowerCase();
+      const registered = (c || '').toLowerCase();
       return registered === coachName || registered === fullName;
     });
   }, [isAuthenticated, coachDisplayName, coach]);
@@ -303,7 +308,7 @@ function QuickCoachRegistration({
                   key={`${session.scheduleId}-${idx}`}
                   style={{
                     ...styles.sessionCard,
-                    backgroundColor: session.coaches && session.coaches.length > 0 ? '#ccffcc' : '#ffcccc',
+                    backgroundColor: Array.isArray(session.coaches) && session.coaches.length > 0 ? '#ccffcc' : '#ffcccc',
                   }}
                 >
                   <div style={styles.sessionInfo}>
@@ -315,7 +320,7 @@ function QuickCoachRegistration({
                       <div style={styles.sessionLocation}>{session.location}</div>
                     )}
                     <div style={styles.sessionCoaches}>
-                      Vetäjä: {session.coaches && session.coaches.length > 0 ? session.coaches.join(', ') : '—'}
+                      Vetäjä: {Array.isArray(session.coaches) && session.coaches.length > 0 ? session.coaches.join(', ') : '—'}
                     </div>
                   </div>
                   {isAuthenticated ? (
