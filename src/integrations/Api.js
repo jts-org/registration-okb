@@ -137,7 +137,10 @@ const getCamps = async (forceRefresh = false) => {
  */
 const getUpcomingSessions = async () => {
   try {
-    return await get({ fetch: 'upcoming_sessions' }, false);
+    const fetched = await get({ fetch: 'upcoming_sessions' }, false);
+    console.log("Api - getUpcomingSessions response: ", fetched);
+    return fetched;
+    //return await get({ fetch: 'upcoming_sessions' }, false);
   } catch (error) {
     console.error('Error fetching upcoming sessions:', error);
     throw error;

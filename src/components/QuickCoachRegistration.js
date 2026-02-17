@@ -270,6 +270,7 @@ function QuickCoachRegistration({
     );
   }
 
+  console.log("Fetched sessions: ", sessions);
   return (
     <div style={styles.container}>
       <div style={styles.header}>

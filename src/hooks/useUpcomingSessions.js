@@ -18,6 +18,7 @@ export default function useUpcomingSessions() {
   const { showLoading, hideLoading } = useContext(LoadingContext);
 
   const fetchSessions = useCallback(async () => {
+    console.log("Fetching upcoming sessions...");
     setIsLoading(true);
     setError(null);
     try {
@@ -27,6 +28,7 @@ export default function useUpcomingSessions() {
     try {
       const resp = await getUpcomingSessions();
       const data = resp?.data || resp || [];
+      console.log("Hook -Received sessions data: ", data);
       
       // Check for error response from backend
       if (data.error) {
@@ -36,9 +38,13 @@ export default function useUpcomingSessions() {
       }
       
       setSessions(Array.isArray(data) ? data : []);
+      console.log("Sessions: ", sessions);
+      return sessions;
+      /*
       // Filter out coaches with Realized FALSE in session.coaches if needed (handled in backend, but double-check)
       const filtered = Array.isArray(data) ? data.map(session => {
         if (!session.coachDetails) return session;
+        console.log("session.coachDetails: ", session.coachDetails);
         // If session.coachDetails exists, filter
         return {
           ...session,
@@ -49,6 +55,7 @@ export default function useUpcomingSessions() {
       }) : [];
       setSessions(filtered);
       return filtered;
+      */
     } catch (err) {
       console.error('Error fetching upcoming sessions:', err);
       setError('Virhe haettaessa sessioita');
@@ -66,6 +73,7 @@ export default function useUpcomingSessions() {
    * @returns {Object} - { '2026-02-17': [...sessions], '2026-02-18': [...] }
    */
   const getSessionsByDate = useCallback(() => {
+    console.log("Grouping sessions by date...", sessions);
     const grouped = {};
     sessions.forEach(session => {
       if (!grouped[session.date]) {
@@ -73,6 +81,7 @@ export default function useUpcomingSessions() {
       }
       grouped[session.date].push(session);
     });
+    console.log("Grouped sessions: ", grouped);
     return grouped;
   }, [sessions]);
 

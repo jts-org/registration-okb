@@ -446,10 +446,9 @@ function getUpcomingSessionsWithCoaches() {
   let coachesData = coachesSheet ? coachesSheet.getDataRange().getValues().slice(1) : [];
   // Filter out rows where Realized (col 5) is not TRUE
   coachesData = coachesData.filter(row => {
-    // If column missing, treat as TRUE
     if (row.length < 6) return true;
-    const realized = row[5];
-    return realized === true || realized === 'TRUE' || realized === 1 || realized === '';
+    const realized = String(row[5]).trim().toUpperCase();
+    return realized !== 'FALSE' && realized !== '0' && realized !== 'NO' && realized !== 'N' && realized !== false;
   });
   const sessionsData = sessionsSheet ? sessionsSheet.getDataRange().getValues().slice(1) : [];
   const aliasMap = getCoachAliasMap();
