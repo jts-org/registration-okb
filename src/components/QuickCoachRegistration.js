@@ -193,7 +193,8 @@ function QuickCoachRegistration({
     isLoading, 
     error, 
     fetchSessions, 
-    getSessionsByDate 
+    getSessionsByDate,
+    removeFromSession 
   } = useUpcomingSessions();
 
   // Fetch sessions on mount
@@ -221,7 +222,7 @@ function QuickCoachRegistration({
   }, [isAuthenticated, coachDisplayName, coach]);
 
   // Handle register click
-  const handleRegister = useCallback((session) => {
+  const handleRegister = useCallback(async (session) => {
     if (!isAuthenticated || !coach || !onRegister) return;
     
     onRegister({
@@ -230,7 +231,23 @@ function QuickCoachRegistration({
       firstName: coach.firstName,
       lastName: coach.lastName,
     });
-  }, [isAuthenticated, coach, onRegister]);
+    await fetchSessions();
+  }, [isAuthenticated, coach, onRegister, fetchSessions]);
+
+  // Remove coach handler
+  const handleRemoveCoach = useCallback(async (session) => {
+    if (!isAuthenticated) return;
+    // Remove the first coach in the list (the designated coach)
+    if (session.coaches && session.coaches.length > 0) {
+      // Try to split coachName into firstName and lastName
+      const [coachName] = session.coaches;
+      await removeFromSession(
+        coachName, // alias (could be alias or full name)
+        session.sessionType,
+        session.date
+      );
+    }
+  }, [isAuthenticated, removeFromSession]);  
 
   // Render loading state
   if (isLoading && sessions.length === 0) {
@@ -275,7 +292,6 @@ function QuickCoachRegistration({
     );
   }
 
-  console.log("Fetched sessions: ", sessions);
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -301,14 +317,15 @@ function QuickCoachRegistration({
             
             {sessionsForDate.map((session, idx) => {
               const alreadyRegistered = isCoachRegistered(session);
-              const canRegister = isAuthenticated && !alreadyRegistered && !isRegistering;
-              
+              const hasDesignatedCoach = Array.isArray(session.coaches) && session.coaches.length > 0;
+              const canRegister = isAuthenticated && !alreadyRegistered && !isRegistering && !hasDesignatedCoach;
+
               return (
                 <div
                   key={`${session.scheduleId}-${idx}`}
                   style={{
                     ...styles.sessionCard,
-                    backgroundColor: Array.isArray(session.coaches) && session.coaches.length > 0 ? '#ccffcc' : '#ffcccc',
+                    backgroundColor: hasDesignatedCoach ? '#ccffcc' : '#ffcccc',
                   }}
                 >
                   <div style={styles.sessionInfo}>
@@ -320,26 +337,36 @@ function QuickCoachRegistration({
                       <div style={styles.sessionLocation}>{session.location}</div>
                     )}
                     <div style={styles.sessionCoaches}>
-                      Vetäjä: {Array.isArray(session.coaches) && session.coaches.length > 0 ? session.coaches.join(', ') : '—'}
+                      Vetäjä: {hasDesignatedCoach ? session.coaches.join(', ') : '—'}
                     </div>
                   </div>
                   {isAuthenticated ? (
-                    alreadyRegistered ? (
-                      <button style={styles.registeredButton} disabled>
-                        ✓ {LABELS.ALREADY_REGISTERED}
+                    hasDesignatedCoach ? (
+                      <button
+                        style={styles.registerButton}
+                        onClick={() => handleRemoveCoach(session)}
+                        disabled={isRegistering}
+                      >
+                        {isRegistering ? '...' : 'Poista vetäjä'}
                       </button>
                     ) : (
-                      <button
-                        style={canRegister ? styles.registerButton : styles.disabledButton}
-                        onClick={() => handleRegister(session)}
-                        disabled={!canRegister}
-                      >
-                        {isRegistering ? '...' : LABELS.REGISTER}
-                      </button>
+                      alreadyRegistered ? (
+                        <button style={styles.registeredButton} disabled>
+                          ✓ {LABELS.ALREADY_REGISTERED}
+                        </button>
+                      ) : (
+                        <button
+                          style={canRegister ? styles.registerButton : styles.disabledButton}
+                          onClick={() => handleRegister(session)}
+                          disabled={!canRegister}
+                        >
+                          {isRegistering ? '...' : LABELS.REGISTER}
+                        </button>
+                      )
                     )
                   ) : (
                     <button style={styles.disabledButton} disabled>
-                      {LABELS.REGISTER}
+                      {hasDesignatedCoach ? 'Poista vetäjä' : LABELS.REGISTER}
                     </button>
                   )}
                 </div>

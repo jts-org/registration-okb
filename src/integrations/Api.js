@@ -140,9 +140,7 @@ const getCamps = async (forceRefresh = false) => {
 const getUpcomingSessions = async () => {
   try {
     const fetched = await get({ fetch: 'upcoming_sessions' }, false);
-    console.log("Api - getUpcomingSessions response: ", fetched);
     return fetched;
-    //return await get({ fetch: 'upcoming_sessions' }, false);
   } catch (error) {
     console.error('Error fetching upcoming sessions:', error);
     throw error;
@@ -271,6 +269,23 @@ const getCoachesExperience = async () => {
   }
 };
 
+const removeCoachFromSession = async (alias, sessionType, date) => {
+  try {
+    const payload = { 
+      path: { role: 'coach', operation: 'remove_from_session' },
+      data: { 
+        alias, 
+        sessionType, 
+        date
+      }
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error removing coach from session:', error);
+    throw error;
+  }
+};
+
 // ============================================
 // COACH LOGIN API FUNCTIONS
 // ============================================
@@ -361,4 +376,4 @@ const deleteCoachLogin = async (coachId) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, getUpcomingSessions, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };
+export { getSettings, getRegistrations, getSessions, getCamps, getUpcomingSessions, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, removeCoachFromSession,getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };

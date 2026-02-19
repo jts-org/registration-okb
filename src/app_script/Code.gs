@@ -16,13 +16,11 @@ const weeklyScheduleSheetName = "weekly_schedule";
 function doPost(e) {
   // Parse the full request body
   const payload = JSON.parse(e.postData.contents);
-
   const role = payload.path.role;
   const operation = payload.path.operation;
   const holder = payload.data;
 
-  Logger.log(`Role: ${role}, Operation: ${operation}`);
-  Logger.log(holder);
+  logToSheet(`doPost - Role: ${role}, Operation: ${operation}, holder: ${holder}`);
 
   let id;
   let result = "success";
@@ -39,6 +37,10 @@ function doPost(e) {
         id = addCoach(holder);
       } else if (operation === "update") {
         id = updateCoach(holder);
+      } else if (operation === "remove_from_session") {
+        if (removeCoachRegistration(holder)) { 
+          id = 1;
+        }
       }
     } else if (role === "camp") {
       if (operation === "add") {
@@ -94,6 +96,8 @@ function doPost(e) {
 
 function doGet(e) {
   const fetchType = e.parameter.fetch;
+
+  logToSheet(`doGet - fetchType: ${fetchType}`);
 
   let result;
 
@@ -407,6 +411,43 @@ function deleteCoachLogin(holder) {
   }
   
   throw new Error('Coach login not found');
+}
+
+// Remove coach registration by setting Realized to FALSE for the matching row
+function removeCoachRegistration(holder) {
+  const ss = getSpreadsheet();
+  const coachLoginSheet = ss.getSheetByName(coachLoginSheetName);
+  const coachesSheet = ss.getSheetByName(coachesSheetName);
+  const coachLoginData = coachLoginSheet.getDataRange().getValues(); // header: ID, firstName, lastName, alias, pin, createdAt
+  const coachesData = coachesSheet.getDataRange().getValues();
+  const { alias, sessionType, date } = holder;
+  let found = false;
+  // Find coach's firstName and lastName by alias
+  let firstName = null, lastName = null;
+
+  for (let i = 1; i < coachLoginData.length; i++) {
+    const row = coachLoginData[i];
+    if (String(row[3]).trim().toLowerCase() === String(alias).trim().toLowerCase()) {
+      firstName = String(row[1]).trim();
+      lastName = String(row[2]).trim();
+      break;
+    }
+  }
+  if (!firstName || !lastName) return;
+  // Find row in coaches sheet
+  for (let i = 1; i < coachesData.length; i++) {
+    const row = coachesData[i];
+    if (
+      String(row[1]).trim().toLowerCase() === firstName.toLowerCase() &&
+      String(row[2]).trim().toLowerCase() === lastName.toLowerCase() &&
+      String(row[3]).trim().toUpperCase() === String(sessionType).trim().toUpperCase() &&
+      Utilities.formatDate(new Date(row[4]), Session.getScriptTimeZone(), 'yyyy-MM-dd') === Utilities.formatDate(new Date(date), Session.getScriptTimeZone(), 'yyyy-MM-dd')
+    ) {
+      coachesSheet.getRange(i + 1, 6).setValue('FALSE'); // Realized column (F)
+      found = true;
+    }
+  }
+  return found;
 }
 
 // ============================================
@@ -1261,7 +1302,9 @@ function generateCoachMonthlyStats() {
     // If column missing, treat as TRUE
     if (row.length < 6) return true;
     const realized = row[5];
-    return realized === true || realized === 'TRUE' || realized === 1 || realized === '';
+    if (typeof realized === 'boolean') return realized;
+    const trimmed = realized.trim().toUpperCase();
+    return trimmed !== 'FALSE' && trimmed !== '0' && trimmed !== 'NO' && trimmed !== 'N';
   });
 
   // Map: { "Etunimi Sukunimi": { total: X, 1: count, 2: count, ... } }
@@ -1393,11 +1436,11 @@ function generateCoachMonthlyStats() {
   // - EI saraketta 2 (Total)
   // - EI viimeistä riviä (TOTAL)
   const ranges = [
-    targetSheet.getRange(1, 1, lastRow - 1, 1) // Coach-nimet
+    targetSheet.getRange(2, 1, lastRow - 2, 1) // Coach-nimet
   ];
 
   activeMonths.forEach(col => {
-    ranges.push(targetSheet.getRange(1, col, lastRow - 1, 1));
+    ranges.push(targetSheet.getRange(2, col, lastRow - 2, 1)); // Kuukausidata ilman otsikkoa ja TOTAL-riviä
   });
 
   // Luodaan bar chart (vaakasuora pylväskaavio)
@@ -1433,4 +1476,10 @@ function generateCoachMonthlyStats() {
   // Lisätään kaavio
   targetSheet.insertChart(chartBuilder.build());
 
+}
+
+// usage logToSheet(`removeCoachRegistration - alias: ${alias}`);
+function logToSheet(message) {
+  const sheet = getSpreadsheet().getSheetByName("Logs");
+  sheet.appendRow([new Date(), message]);
 }

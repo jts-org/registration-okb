@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useContext } from 'react';
-import { getUpcomingSessions } from '../integrations/Api';
+import { getUpcomingSessions, removeCoachFromSession } from '../integrations/Api';
 import { LoadingContext } from '../contexts/LoadingContext';
 
 /**
@@ -18,7 +18,6 @@ export default function useUpcomingSessions() {
   const { showLoading, hideLoading } = useContext(LoadingContext);
 
   const fetchSessions = useCallback(async () => {
-    console.log("Fetching upcoming sessions...");
     setIsLoading(true);
     setError(null);
     try {
@@ -28,7 +27,6 @@ export default function useUpcomingSessions() {
     try {
       const resp = await getUpcomingSessions();
       const data = resp?.data || resp || [];
-      console.log("Hook -Received sessions data: ", data);
       
       // Check for error response from backend
       if (data.error) {
@@ -46,7 +44,6 @@ export default function useUpcomingSessions() {
         : [];
 
       setSessions(normalizedData);
-      console.log("Sessions (normalized): ", normalizedData);
       return normalizedData;
     } catch (err) {
       console.error('Error fetching upcoming sessions:', err);
@@ -65,7 +62,6 @@ export default function useUpcomingSessions() {
    * @returns {Object} - { '2026-02-17': [...sessions], '2026-02-18': [...] }
    */
   const getSessionsByDate = useCallback(() => {
-    console.log("Grouping sessions by date...", sessions);
     const grouped = {};
     sessions.forEach(session => {
       if (!grouped[session.date]) {
@@ -73,15 +69,43 @@ export default function useUpcomingSessions() {
       }
       grouped[session.date].push(session);
     });
-    console.log("Grouped sessions: ", grouped);
     return grouped;
   }, [sessions]);
+
+  const removeFromSession = useCallback(async (alias, sessionType, date) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      showLoading?.();
+    } catch (e) { /* LoadingContext might not be available */ }
+
+    try {
+      const resp = await removeCoachFromSession(alias, sessionType, date);
+      const data = resp?.data || resp || null;
+      if (data?.error) {
+        setError(data.error);
+        return false;
+      }
+      // Refresh sessions after successful removal
+      await fetchSessions();
+      return true;
+    } catch (err) {
+      console.error('Error removing coach from session:', err);
+      setError('Virhe poistaessa valmentajaa sessiosta');
+    } finally {
+      setIsLoading(false);
+      try {
+        hideLoading?.();
+      } catch (e) { /* LoadingContext might not be available */ }
+    }
+  }, [fetchSessions, showLoading, hideLoading]);
 
   return { 
     sessions, 
     isLoading, 
     error,
     fetchSessions, 
-    getSessionsByDate 
+    getSessionsByDate,
+    removeFromSession
   };
 }
