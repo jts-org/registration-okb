@@ -20,7 +20,7 @@ function doPost(e) {
   const operation = payload.path.operation;
   const holder = payload.data;
 
-  logToSheet(`doPost - Role: ${role}, Operation: ${operation}, holder: ${holder}`);
+  logToSheet(`doPost - Role: ${role}, Operation: ${operation}, holder: ` + holder);
 
   let id;
   let result = "success";
