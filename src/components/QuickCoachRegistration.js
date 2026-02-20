@@ -175,16 +175,20 @@ const styles = {
  * Shows upcoming sessions with registered coaches and allows quick registration
  * 
  * @param {Object} props
- * @param {boolean} props.isAuthenticated - Whether coach is logged in
+ * @param {boolean} props.isAuthenticated - Whether coach is logged in via PIN
+ * @param {boolean} props.isPasswordAuthenticated - Whether coach is logged in via password (anonymous)
  * @param {Object} props.coach - Current coach data { firstName, lastName }
  * @param {Function} props.onRegister - Called when registering: onRegister(sessionType, date)
+ * @param {Function} props.onManualRegister - Called for password-auth users to switch to manual mode with preselected values
  * @param {boolean} props.isRegistering - Whether a registration is in progress
  * @param {string} props.coachDisplayName - Display name of logged-in coach
  */
 function QuickCoachRegistration({ 
   isAuthenticated = false, 
+  isPasswordAuthenticated = false,
   coach = null,
   onRegister,
+  onManualRegister,
   isRegistering = false,
   coachDisplayName = '',
 }) {
@@ -225,12 +229,14 @@ function QuickCoachRegistration({
   const handleRegister = useCallback(async (session) => {
     if (!isAuthenticated || !coach || !onRegister) return;
     
-    onRegister({
+    // Wait for registration to complete before refreshing sessions
+    await onRegister({
       sessionType: session.sessionType,
       date: session.date,
       firstName: coach.firstName,
       lastName: coach.lastName,
     });
+    // Refresh sessions to show the newly registered coach
     await fetchSessions();
   }, [isAuthenticated, coach, onRegister, fetchSessions]);
 
@@ -319,6 +325,17 @@ function QuickCoachRegistration({
               const alreadyRegistered = isCoachRegistered(session);
               const hasDesignatedCoach = Array.isArray(session.coaches) && session.coaches.length > 0;
               const canRegister = isAuthenticated && !alreadyRegistered && !isRegistering && !hasDesignatedCoach;
+              const canManualRegister = isPasswordAuthenticated && !isRegistering && !hasDesignatedCoach;
+
+              // Handle click for password-authenticated users (switch to manual mode)
+              const handleManualClick = () => {
+                if (onManualRegister) {
+                  onManualRegister({
+                    sessionType: session.sessionType,
+                    date: session.date,
+                  });
+                }
+              };
 
               return (
                 <div
@@ -341,6 +358,7 @@ function QuickCoachRegistration({
                     </div>
                   </div>
                   {isAuthenticated ? (
+                    // PIN-authenticated user: can register directly or remove coach
                     hasDesignatedCoach ? (
                       <button
                         style={styles.registerButton}
@@ -364,7 +382,23 @@ function QuickCoachRegistration({
                         </button>
                       )
                     )
+                  ) : isPasswordAuthenticated ? (
+                    // Password-authenticated user: switch to manual mode with preselected values
+                    hasDesignatedCoach ? (
+                      <button style={styles.disabledButton} disabled>
+                        Poista vetäjä
+                      </button>
+                    ) : (
+                      <button
+                        style={canManualRegister ? styles.registerButton : styles.disabledButton}
+                        onClick={handleManualClick}
+                        disabled={!canManualRegister}
+                      >
+                        {LABELS.REGISTER}
+                      </button>
+                    )
                   ) : (
+                    // Not authenticated at all
                     <button style={styles.disabledButton} disabled>
                       {hasDesignatedCoach ? 'Poista vetäjä' : LABELS.REGISTER}
                     </button>

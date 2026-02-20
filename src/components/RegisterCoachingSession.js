@@ -42,7 +42,8 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [registrationMode, setRegistrationMode] = useState(REGISTRATION_MODE.QUICK);
   const [quickRegisteringSession, setQuickRegisteringSession] = useState(null);
-  
+  const [preselectedSession, setPreselectedSession] = useState(null);
+
   const tabButtonRef = useRef(null);
   
   // Coach login hook
@@ -171,6 +172,13 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
     }
   }, [onNewCoachRegistration]);
 
+  // Handler for password-authenticated users clicking register on a session
+  // Switches to manual mode with preselected session and date
+  const handleManualRegister = useCallback(({ sessionType, date }) => {
+    setPreselectedSession({ sessionType, date });
+    setRegistrationMode(REGISTRATION_MODE.MANUAL);
+  }, []);
+
   const {
     sessionButtonRef,
     formInitialized,
@@ -184,6 +192,24 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
     handleConfirmed,
     handleCancelled,
   } = useRegisterCoachingSessionForm(coachingSessionOptions, onCreate);
+
+  // Apply preselected session and date when switching to manual mode from quick registration
+  useEffect(() => {
+    if (preselectedSession && registrationMode === REGISTRATION_MODE.MANUAL) {
+      // Find matching session option (case-insensitive match)
+      const matchingSession = coachingSessionOptions.find(
+        opt => opt.toUpperCase() === preselectedSession.sessionType.toUpperCase()
+      );
+      if (matchingSession) {
+        handleSessionButtonClicked(matchingSession);
+      }
+      if (preselectedSession.date) {
+        handleDateSelected(preselectedSession.date);
+      }
+      // Clear preselected data after applying
+      setPreselectedSession(null);
+    }
+  }, [preselectedSession, registrationMode, coachingSessionOptions, handleSessionButtonClicked, handleDateSelected]);
 
   const isFormValid =
     firstName.trim() !== '' &&
@@ -320,8 +346,10 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
       {registrationMode === REGISTRATION_MODE.QUICK && (
         <QuickCoachRegistration
           isAuthenticated={isAuthenticated}
+          isPasswordAuthenticated={viewAsCoach && !isAuthenticated}
           coach={coach}
           onRegister={handleQuickRegister}
+          onManualRegister={handleManualRegister}
           isRegistering={!!quickRegisteringSession}
           coachDisplayName={getDisplayName()}
         />
