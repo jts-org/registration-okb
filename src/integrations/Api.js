@@ -12,6 +12,8 @@ if (!DEPLOYMENT_ID) {
 
 const API_URL = `${API_BASE_URL}${DEPLOYMENT_ID}/exec`;
 
+console.log("API_URL: ", API_URL);
+
 // Simple in-memory cache with expiry
 const cache = new Map();
 const CACHE_TTL = 60000; // 1 minute cache
@@ -127,6 +129,20 @@ const getCamps = async (forceRefresh = false) => {
     return await get({ fetch: 'camps' }, !forceRefresh);
   } catch (error) {
     console.error('Error fetching camps:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get upcoming sessions for current and next week with registered coaches
+ * Always fetches fresh data (no cache) to show latest registrations
+ */
+const getUpcomingSessions = async () => {
+  try {
+    const fetched = await get({ fetch: 'upcoming_sessions' }, false);
+    return fetched;
+  } catch (error) {
+    console.error('Error fetching upcoming sessions:', error);
     throw error;
   }
 };
@@ -253,6 +269,23 @@ const getCoachesExperience = async () => {
   }
 };
 
+const removeCoachFromSession = async (alias, sessionType, date) => {
+  try {
+    const payload = { 
+      path: { role: 'coach', operation: 'remove_from_session' },
+      data: { 
+        alias, 
+        sessionType, 
+        date
+      }
+    };
+    return await post(payload);
+  } catch (error) {
+    console.error('Error removing coach from session:', error);
+    throw error;
+  }
+};
+
 // ============================================
 // COACH LOGIN API FUNCTIONS
 // ============================================
@@ -343,4 +376,4 @@ const deleteCoachLogin = async (coachId) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };
+export { getSettings, getRegistrations, getSessions, getCamps, getUpcomingSessions, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, removeCoachFromSession,getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };

@@ -26,8 +26,12 @@ export default function useCoachRegistrations() {
           firstName: entry[1],
           lastName: entry[2],
           sessionName: entry[3],
-          date: dateStringToDate(entry[4])
-        }));
+          date: dateStringToDate(entry[4]),
+          realized: entry.length > 5 ? entry[5] : true
+        })).filter(entry => {
+          // If realized missing, treat as TRUE
+          return entry.realized === true || entry.realized === 'TRUE' || entry.realized === 1 || entry.realized === '';
+        });
         setCoachRegistrations(mappedCoachRegistrationData);
         return mappedCoachRegistrationData;
     } finally {

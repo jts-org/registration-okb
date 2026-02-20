@@ -15,7 +15,7 @@ const LABELS = {
   PASSWORD: 'Salasana',
   PASSWORD_PLACEHOLDER: 'Syötä salasana...',
   CONTINUE_ANONYMOUS: 'Jatka salasanalla',
-  BACK_TO_PIN: 'Kirjaudu PIN-koodilla',
+  BACK_TO_PIN: 'Anna PIN-koodi',
   
   ERROR_WRONG_PIN: 'Virheellinen PIN-koodi',
   ERROR_WRONG_PASSWORD: 'Väärä salasana',

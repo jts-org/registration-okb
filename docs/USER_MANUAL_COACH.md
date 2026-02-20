@@ -37,7 +37,7 @@ Tämä ohje on tarkoitettu Oulun Kickboxing ry:n vetäjille ja ohjaajille. Järj
 
 Klikkaa **"Vetäjät"**-painiketta. Näet kirjautumisikkunan, jossa on kaksi vaihtoehtoa:
 
-#### Vaihtoehto 1: Kirjaudu PIN-koodilla (suositeltu)
+#### Vaihtoehto 1: Anna PIN-koodi (suositeltu)
 
 Jos olet rekisteröinyt henkilökohtaisen PIN-koodin:
 
@@ -73,7 +73,7 @@ Jos sinulla ei vielä ole PIN-koodia, voit rekisteröidä sen:
 1. Klikkaa **"Vetäjät"**-painiketta päävalikossa
 2. Kirjaudu sisään salasanalla (klikkaa "Jatka salasanalla")
 3. Näet ilmoittautumissivulla **"Et ole kirjautunut"** -tekstin punaisella
-4. Klikkaa **"Kirjaudu PIN-koodilla"** -painiketta
+4. Klikkaa **"Anna PIN-koodi"** -painiketta
 5. Klikkaa **"Rekisteröidy tästä"** -linkkiä dialogissa
 6. Täytä rekisteröintilomake:
    - **Etunimi** - Kirjoita etunimesi

@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 const DIALOG_LABELS = {
   // Login mode
-  LOGIN_TITLE: 'Kirjaudu PIN-koodilla',
+  LOGIN_TITLE: 'Anna PIN-koodi',
   FIRST_NAME: 'Etunimi',
   LAST_NAME: 'Sukunimi',
   PIN: 'PIN-koodi',
