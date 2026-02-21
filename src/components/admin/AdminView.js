@@ -4,12 +4,12 @@
  */
 
 import { useRef, useState, useContext } from 'react';
-import ToggleButtons from './common/ToggleButtons';
-import CampManagement from './admin/CampManagement';
-import SessionManagement from './admin/SessionManagement';
-import PerformanceReport from './admin/PerformanceReport';
-import { TAB_LABELS } from '../constants';
-import { LoadingContext } from '../contexts/LoadingContext';
+import ToggleButtons from '../common/ToggleButtons';
+import CampManagement from './CampManagement';
+import SessionManagement from './SessionManagement';
+import PerformanceReport from './PerformanceReport';
+import { TAB_LABELS } from '../../constants';
+import { LoadingContext } from '../../contexts/LoadingContext';
 
 const tabs = [TAB_LABELS.MAIN];
 

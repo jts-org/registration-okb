@@ -27,3 +27,4 @@ export const locales = {
 };
 
 export { fiLocale, enLocale };
+

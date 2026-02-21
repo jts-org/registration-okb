@@ -4,10 +4,10 @@
  */
 
 import { useState, useContext, useCallback } from "react";
-import { getRegistrations } from '../integrations/Api';
-import register from '../utils/registrationApiUtils';
-import { LoadingContext } from '../contexts/LoadingContext';
-import { findMatchingRegistrationEntry, dateStringToDate } from '../utils/registrationUtils';
+import { getRegistrations } from '../../services/Api';
+import register from '../../services/registrationApiUtils';
+import { LoadingContext } from '../../contexts/LoadingContext';
+import { findMatchingRegistrationEntry, dateStringToDate } from '../../utils/registrationUtils';
 
 export default function useTraineeRegistrations() {
   const [traineeRegistrations, setTraineeRegistrations] = useState([]);

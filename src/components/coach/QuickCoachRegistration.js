@@ -5,7 +5,7 @@
 
 import { useEffect, useCallback } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
-import useUpcomingSessions from '../hooks/useUpcomingSessions';
+import useUpcomingSessions from '../../hooks/coach/useUpcomingSessions';
 
 const WEEKDAY_NAMES = ['Ma', 'Ti', 'Ke', 'To', 'Pe', 'La', 'Su'];
 

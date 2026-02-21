@@ -3,8 +3,8 @@
  * All rights reserved.
  */
 
-import oqmLogo from '../oqm_logo.png';
-import reactLogo from '../logo.svg';
+import oqmLogo from '../../assets/images/oqm_logo.png';
+import reactLogo from '../../assets/images/logo.svg';
 
 function Footer() {
   const currentYear = new Date().getFullYear();

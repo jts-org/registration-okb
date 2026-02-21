@@ -5,16 +5,16 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
-import DatePicker from './common/DatePicker';
-import ConfirmationDialog from './ConfirmationDialog';
-import Snackbar from './common/Snackbar';
-import CoachPinDialog from './auth/CoachPinDialog';
+import DatePicker from '../common/DatePicker';
+import ConfirmationDialog from '../common/ConfirmationDialog';
+import Snackbar from '../common/Snackbar';
+import CoachPinDialog from '../auth/CoachPinDialog';
 import QuickCoachRegistration from './QuickCoachRegistration';
-import useRegisterCoachingSessionForm from '../hooks/useRegisterCoachingSessionForm';
-import useCoachLogin from '../hooks/auth/useCoachLogin';
-import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../constants';
-import useCoachRegistrations from '../hooks/useCoachRegistrations';
-import ToggleButtons from './common/ToggleButtons';
+import useRegisterCoachingSessionForm from '../../hooks/coach/useRegisterCoachingSessionForm';
+import useCoachLogin from '../../hooks/auth/useCoachLogin';
+import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../../constants';
+import useCoachRegistrations from '../../hooks/coach/useCoachRegistrations';
+import ToggleButtons from '../common/ToggleButtons';
 
 const tabs = [TAB_LABELS.MAIN];
 

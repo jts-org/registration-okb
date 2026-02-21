@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSettings } from '../integrations/Api';
+import { getSettings } from '../../services/Api';
 
 function passwordStruct(password) {
   return { password };

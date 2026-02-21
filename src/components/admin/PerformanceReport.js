@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getRegistrations, getCamps, getCoachesExperience } from '../../integrations/Api';
+import { getRegistrations, getCamps, getCoachesExperience } from '../../services/Api';
 import { SkeletonList } from '../common/Skeleton';
 
 const LABELS = {

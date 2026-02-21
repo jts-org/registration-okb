@@ -4,8 +4,8 @@
  */
 
 import { useState, useCallback, useContext } from 'react';
-import { getUpcomingSessions, removeCoachFromSession } from '../integrations/Api';
-import { LoadingContext } from '../contexts/LoadingContext';
+import { getUpcomingSessions, removeCoachFromSession } from '../../services/Api';
+import { LoadingContext } from '../../contexts/LoadingContext';
 
 /**
  * Hook for fetching upcoming sessions with registered coaches
