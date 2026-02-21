@@ -4,9 +4,9 @@
  */
 
 import { useRef, useMemo } from "react";
-import ToggleButtons from "./common/ToggleButtons";
-import { TABS } from "../constants";
-import { useFeatureFlags, useTranslation } from "../contexts/ConfigContext";
+import ToggleButtons from "../common/ToggleButtons";
+import { TABS } from "../../constants";
+import { useFeatureFlags, useTranslation } from "../../contexts/ConfigContext";
 
 function MainMenu({ selected, onSelect }) {
   const buttonRef = useRef(null);

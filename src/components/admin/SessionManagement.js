@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSessions, addSession, updateSession, deleteSession } from '../../integrations/Api';
+import { getSessions, addSession, updateSession, deleteSession } from '../../services/Api';
 import { SkeletonList } from '../common/Skeleton';
 
 const LABELS = {

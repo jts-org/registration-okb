@@ -4,21 +4,21 @@
  */
 
 import { useState, useEffect, useContext, useRef } from 'react';
-import logo from './logo_new_reversed_colors.png';
+import logo from './assets/images/logo_new_reversed_colors.png';
 import './App.css';
-import MainMenu from './components/MainMenu';
-import RegisterCoachingSession from './components/RegisterCoachingSession';
-import RegisterTrainingSession from './components/RegisterTrainingSession';
-import AdminView from './components/AdminView';
-import PasswordDialog from './components/PasswordDialog';
-import CoachAccessDialog from './components/CoachAccessDialog';
-import Footer from './components/Footer';
-import useSettings from './hooks/useSettings';
-import useCoachLogin from './hooks/useCoachLogin';
+import MainMenu from './components/layout/MainMenu';
+import RegisterCoachingSession from './components/coach/RegisterCoachingSession';
+import RegisterTrainingSession from './components/trainee/RegisterTrainingSession';
+import AdminView from './components/admin/AdminView';
+import PasswordDialog from './components/auth/PasswordDialog';
+import CoachAccessDialog from './components/auth/CoachAccessDialog';
+import Footer from './components/layout/Footer';
+import useSettings from './hooks/shared/useSettings';
+import useCoachLogin from './hooks/auth/useCoachLogin';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingContext } from './contexts/LoadingContext';
 import { TABS, TAB_LABEL_TO_KEY, COACHING_SESSION_OPTIONS, SESSION_OPTIONS } from './constants';
-import { getSessionsAndCamps, prefetchData } from './integrations/Api';
+import { getSessionsAndCamps, prefetchData } from './services/Api';
 import { ConfigurationProvider, useAppConfig, useTranslation } from './contexts/ConfigContext';
 
 // Inner app component that uses configuration context

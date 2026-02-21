@@ -4,11 +4,11 @@
  */
 
 import { useState, useContext, useCallback } from 'react';
-import { getRegistrations } from '../integrations/Api';
-import { dateStringToDate } from '../utils/registrationUtils';
-import { LoadingContext } from '../contexts/LoadingContext';
-import register from '../utils/registrationApiUtils';
-import { findMatchingRegistrationEntry } from '../utils/registrationUtils';
+import { getRegistrations } from '../../services/Api';
+import { dateStringToDate } from '../../utils/registrationUtils';
+import { LoadingContext } from '../../contexts/LoadingContext';
+import register from '../../services/registrationApiUtils';
+import { findMatchingRegistrationEntry } from '../../utils/registrationUtils';
 
 export default function useCoachRegistrations() {
   const [coachRegistrations, setCoachRegistrations] = useState([]);

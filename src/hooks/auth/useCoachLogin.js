@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { registerCoachPin, verifyCoachPin, updateCoachLogin } from '../integrations/Api';
+import { registerCoachPin, verifyCoachPin, updateCoachLogin } from '../../services/Api';
 
 const STORAGE_KEY = 'okb_coach_session';
 const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds

@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-import { postRegistration } from '../integrations/Api';
+import { postRegistration } from '../services/Api';
 
 // Robust helper to post a registration and extract a numeric id from common response shapes.
 export async function register(registrationData, role, operation) {

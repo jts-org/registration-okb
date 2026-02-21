@@ -5,14 +5,14 @@
 
 import { useRef, useState } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
-import ToggleButtons from "./common/ToggleButtons";
-import DatePicker from './common/DatePicker';
-import ConfirmationDialog from './ConfirmationDialog';
-import Snackbar from './common/Snackbar';
-import useRegisterTrainingSessionForm from '../hooks/useRegisterTrainingSessionForm';
-import useTraineeRegistrations from '../hooks/useTraineeRegistrations';
-import { TAB_LABELS, SESSION_OPTIONS, AGE_GROUP_OPTIONS, TRAINEE_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../constants';
-import '../App.css';
+import ToggleButtons from "../common/ToggleButtons";
+import DatePicker from '../common/DatePicker';
+import ConfirmationDialog from '../common/ConfirmationDialog';
+import Snackbar from '../common/Snackbar';
+import useRegisterTrainingSessionForm from '../../hooks/trainee/useRegisterTrainingSessionForm';
+import useTraineeRegistrations from '../../hooks/trainee/useTraineeRegistrations';
+import { TAB_LABELS, SESSION_OPTIONS, AGE_GROUP_OPTIONS, TRAINEE_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../../constants';
+import '../../App.css';
 
 const tabs = [TAB_LABELS.MAIN];
 

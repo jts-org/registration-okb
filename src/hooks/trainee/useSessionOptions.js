@@ -4,10 +4,10 @@
  */
 
 import { useState, useContext } from 'react';
-import { LoadingContext } from '../contexts/LoadingContext';
-import { SESSION_OPTIONS } from '../constants';
-import { getCamps, getSessions } from '../integrations/Api';
-import { dateStringToDate, isValidDate, getLocalDate } from '../utils/registrationUtils';
+import { LoadingContext } from '../../contexts/LoadingContext';
+import { SESSION_OPTIONS } from '../../constants';
+import { getCamps, getSessions } from '../../integrations/Api';
+import { dateStringToDate, isValidDate, getLocalDate } from '../../utils/registrationUtils';
 
 const useSessionOptions = () => {
   const { setLoading } = useContext(LoadingContext);

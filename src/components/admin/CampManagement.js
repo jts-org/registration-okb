@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getCamps, addCamp, updateCamp, deleteCamp } from '../../integrations/Api';
+import { getCamps, addCamp, updateCamp, deleteCamp } from '../../services/Api';
 import { SkeletonList } from '../common/Skeleton';
 
 const LABELS = {
