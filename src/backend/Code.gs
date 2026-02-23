@@ -20,7 +20,7 @@ function doPost(e) {
   const operation = payload.path.operation;
   const holder = payload.data;
 
-  logToSheet(`doPost - Role: ${role}, Operation: ${operation}, holder: ` + holder);
+  logToSheet(`doPost - Role: ${role}, Operation: ${operation}, holder: ` + JSON.stringify(holder));
 
   let id;
   let result = "success";
@@ -517,98 +517,131 @@ function getUpcomingSessionsWithCoaches() {
   
   const sessions = [];
   const startOfWeek = getStartOfWeek(today);
-  
-  // Generate sessions for current week and next week (14 days)
-  for (let weekOffset = 0; weekOffset < 2; weekOffset++) {
-    for (let day = 0; day < 7; day++) {
-      const sessionDate = new Date(startOfWeek);
-      sessionDate.setDate(startOfWeek.getDate() + (weekOffset * 7) + day);
-      
-      // Skip past dates
-      if (sessionDate < today) continue;
-      
-      const weekday = day; // 0=Mon, 1=Tue, ..., 6=Sun
-      const dateStr = Utilities.formatDate(sessionDate, tz, 'yyyy-MM-dd');
-      
-      // Find scheduled sessions for this weekday
-      scheduleData.forEach(row => {
-        // Schema: [id, sessionType, weekday, startTime, endTime, location, active]
-        const isActive = row[6] === true || row[6] === 'TRUE' || row[6] === 1;
-        if (!isActive) return;
-        
-        // Parse weekday(s) - supports single value (1) or comma-separated (1,3)
-        const weekdayValue = String(row[2] || '');
-        const weekdays = weekdayValue.split(',').map(w => Number(w.trim()));
-        if (!weekdays.includes(weekday)) return;
-        
-        const sessionType = String(row[1] || '').toUpperCase();
-        
-        // Check if course is active for this date (from sessions sheet)
-        const activePeriod = courseActivePeriods[sessionType];
-        if (activePeriod) {
-          if (sessionDate < activePeriod.start || sessionDate > activePeriod.end) {
-            return; // Course not active on this date
-          }
+  // Always show sessions from current week's Monday to end of next week's Sunday (14 days)
+  const sessionDates = [];
+  for (let i = 0; i < 14; i++) {
+    const sessionDate = new Date(startOfWeek);
+    sessionDate.setDate(startOfWeek.getDate() + i);
+    sessionDates.push(new Date(sessionDate));
+  }
+
+  sessionDates.forEach(sessionDate => {
+    const weekday = sessionDate.getDay() === 0 ? 6 : sessionDate.getDay() - 1; // 0=Sun, 1=Mon...6=Sat → 0=Mon, 6=Sun
+    const dateStr = Utilities.formatDate(sessionDate, tz, 'yyyy-MM-dd');
+
+    scheduleData.forEach(row => {
+      // Schema: [id, sessionType, weekday, startTime, endTime, location, active]
+      const isActive = row[6] === true || row[6] === 'TRUE' || row[6] === 1;
+      if (!isActive) return;
+
+      // Parse weekday(s) - supports single value (1) or comma-separated (1,3)
+      const weekdayValue = String(row[2] || '');
+      const weekdays = weekdayValue.split(',').map(w => Number(w.trim()));
+      if (!weekdays.includes(weekday)) return;
+
+      const sessionType = String(row[1] || '').toUpperCase();
+
+      // Check if course is active for this date (from sessions sheet)
+      const activePeriod = courseActivePeriods[sessionType];
+      if (activePeriod) {
+        if (sessionDate < activePeriod.start || sessionDate > activePeriod.end) {
+          return; // Course not active on this date
         }
-        
-        // Format time values - Google Sheets stores times as Date objects
+      }
+
+      // Format time values - Google Sheets stores times as Date objects
+      const rawStartTime = row[3];
+      const rawEndTime = row[4];
+
+      const startTimeStr = timeToStr(rawStartTime, tz, 'HH:mm');
+      const endTimeStr = timeToStr(rawEndTime, tz, 'HH:mm');
+
+      const location = row[5] || '';
+
+      // Find coaches registered for this session + date
+      const registeredCoaches = coachesData
+        .filter(coach => {
+          const coachSession = String(coach[3] || '').toUpperCase();
+          const coachDateStr = timeToStr(coach[4], tz, 'yyyy-MM-dd');
+          return coachSession === sessionType && coachDateStr === dateStr;
+        })
+        .map(coach => {
+          const fullName = `${coach[1]} ${coach[2]}`;
+          return aliasMap[fullName] || fullName;
+        });
+
+      sessions.push({
+        scheduleId: row[0],
+        sessionType: sessionType,
+        date: dateStr,
+        weekday: weekday,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        location: String(location),
+        coaches: registeredCoaches
+      });
+    });
+
+    // --- ADDITION: VAPAA/SPARRI sessions from coachesSheet ---
+    // Find VAPAA/SPARRI sessions with designated coach and realized not FALSE for this date
+    const vapaaSparriSessions = coachesData
+      .filter(coach => {
+        const coachSession = String(coach[3] || '').toUpperCase();
+        const coachDateStr = timeToStr(coach[4], tz, 'yyyy-MM-dd');
+        // Realized check: already filtered above, but double check
+        const realized = coach.length >= 6 ? coach[5] : undefined;
+        let realizedOk = true;
+        if (typeof realized === 'boolean') realizedOk = realized;
+        else if (typeof realized === 'string') {
+          const trimmed = realized.trim().toUpperCase();
+          realizedOk = trimmed !== 'FALSE' && trimmed !== '0' && trimmed !== 'NO' && trimmed !== 'N';
+        }
+        return coachSession === 'VAPAA/SPARRI' && coachDateStr === dateStr && realizedOk;
+      });
+
+    if (vapaaSparriSessions.length > 0) {
+      // Group by coach
+      vapaaSparriSessions.forEach(coach => {
+        const fullName = `${coach[1]} ${coach[2]}`;
+        const alias = aliasMap[fullName] || fullName;
         let startTimeStr = '';
         let endTimeStr = '';
-        const rawStartTime = row[3];
-        const rawEndTime = row[4];
-        
-        if (rawStartTime instanceof Date) {
-          startTimeStr = Utilities.formatDate(rawStartTime, tz, 'HH:mm');
-        } else if (rawStartTime) {
-          startTimeStr = String(rawStartTime);
+        if (coach.length >= 8) {
+          startTimeStr = timeToStr(coach[6], tz, 'HH:mm');
+          endTimeStr = timeToStr(coach[7], tz, 'HH:mm');
         }
-        
-        if (rawEndTime instanceof Date) {
-          endTimeStr = Utilities.formatDate(rawEndTime, tz, 'HH:mm');
-        } else if (rawEndTime) {
-          endTimeStr = String(rawEndTime);
-        }
-        
-        const location = row[5] || '';
-        
-        // Find coaches registered for this session + date
-        const registeredCoaches = coachesData
-          .filter(coach => {
-            const coachSession = String(coach[3] || '').toUpperCase();
-            const coachDate = coach[4];
-            let coachDateStr;
-            if (coachDate instanceof Date) {
-              coachDateStr = Utilities.formatDate(coachDate, tz, 'yyyy-MM-dd');
-            } else {
-              coachDateStr = String(coachDate || '');
-            }
-            return coachSession === sessionType && coachDateStr === dateStr;
-          })
-          .map(coach => {
-            const fullName = `${coach[1]} ${coach[2]}`;
-            return aliasMap[fullName] || fullName;
-          });
-
         sessions.push({
-          scheduleId: row[0],
-          sessionType: sessionType,
+          scheduleId: null,
+          sessionType: 'VAPAA/SPARRI',
           date: dateStr,
           weekday: weekday,
           startTime: startTimeStr,
           endTime: endTimeStr,
-          location: String(location),
-          coaches: registeredCoaches
+          location: '',
+          coaches: [alias]
         });
       });
     }
-  }
+  });
   // Sort by date, then by start time
   sessions.sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
     return a.startTime.localeCompare(b.startTime);
   });
+
+  logToSheet(`getUpcomingSessionsWithCoaches() - sessions: ` + JSON.stringify(sessions));
   
   return sessions;
+}
+
+function timeToStr(rawTime, format) {
+  let timeStr = '';
+  if (rawTime instanceof Date) {
+    timeStr = Utilities.formatDate(rawTime, arguments[1], arguments[2]);
+  } else if (rawTime) {
+    timeStr = String(rawTime || '');
+  }
+  return timeStr;
 }
 
 /**
@@ -798,14 +831,32 @@ function addCoach(holder) {
     id = (Number(lastId) || lastRow) + 1;
   }
 
-  sheet.appendRow([
+  // Default row values
+  let row = [
     id,
     holder.firstName,
     holder.lastName,
     holder.sessionName,
-    ...formattedDates
-  ]);
+    ...formattedDates,
+    true
+  ];
+
+  // If session is VAPAA/SPARRI and start/end times exist, set F=true, G=startTime, H=endTime
+  if (holder.sessionName === 'VAPAA/SPARRI' && holder.startTime && holder.endTime) {
+    // Ensure row has at least 5 columns before G, H
+    while (row.length < 6) row.push("");
+    row[6] = isoToFinnishTime(holder.startTime); // G column
+    row[7] = isoToFinnishTime(holder.endTime); // H column
+  }
+  sheet.appendRow(row);
   return id;
+}
+
+function isoToFinnishTime(isoString) {
+  logToSheet(`isoToFinnishTime - isoString: ${isoString}`);
+  var date = new Date(isoString);
+  logToSheet(`isoToFinnishTime - date: ${date}`);
+  return Utilities.formatDate(date, "Europe/Helsinki", "HH:mm");
 }
 
 /**
@@ -1478,8 +1529,14 @@ function generateCoachMonthlyStats() {
 
 }
 
-// usage logToSheet(`removeCoachRegistration - alias: ${alias}`);
+// usage: 
+//  logToSheet(`removeCoachRegistration - alias: ${alias}`);
+//  logToSheet(`holder: ` + JSON.stringify(holder));
 function logToSheet(message) {
   const sheet = getSpreadsheet().getSheetByName("Logs");
-  sheet.appendRow([new Date(), message]);
+  if (!sheet) return;
+  const loggingEnabled = sheet.getRange("A1").getValue();
+  if (String(loggingEnabled).trim() === "log_enabled") {
+    sheet.appendRow([new Date(), message]);
+  }
 }

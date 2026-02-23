@@ -15,6 +15,8 @@ import useCoachLogin from '../../hooks/auth/useCoachLogin';
 import { TAB_LABELS, COACHING_SESSION_OPTIONS, COACH_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../../constants';
 import useCoachRegistrations from '../../hooks/coach/useCoachRegistrations';
 import ToggleButtons from '../common/ToggleButtons';
+import TimePicker from '../common//TimePicker';
+import { datetimeToTimeString } from '../../utils/registrationUtils';
 
 const tabs = [TAB_LABELS.MAIN];
 
@@ -184,10 +186,14 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
     formInitialized,
     selectedSession,
     selectedDate,
+    selectedStartTime,
+    selectedEndTime,
     showConfirmationDialog,
     sessionRegistrationData,
     handleSessionButtonClicked,
     handleDateSelected,
+    handleSelectedStartTime,
+    handleSelectedEndTime,
     handleSubmitRegistration,
     handleConfirmed,
     handleCancelled,
@@ -214,7 +220,11 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
   const isFormValid =
     firstName.trim() !== '' &&
     lastName.trim() !== '' &&
-    !!selectedSession;
+    !!selectedSession &&
+    (
+      selectedSession !== 'VAPAA/SPARRI' ||
+      (selectedStartTime !== null && selectedEndTime !== null && selectedEndTime > selectedStartTime)
+    );
 
   if (!formInitialized) {
     return (
@@ -370,6 +380,18 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
       <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SESSION_DATE}</h3>
       <label htmlFor="date">{COACH_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
       <DatePicker id="date" selectedDate={selectedDate} onDateChange={handleDateSelected} />
+      {/* Show time selection for VAPAA/SPARRI */}
+      {selectedSession === 'VAPAA/SPARRI' && (
+        <>
+          <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SESSION_TIME}</h3>
+          <label htmlFor="startTime">{COACH_SESSION_REGISTRATION_FORM_LABELS.START_TIME}</label>
+          <TimePicker id="startTime" value={selectedStartTime ?? null} onChange={handleSelectedStartTime} label={""} />
+          <br />
+          <br />
+          <label htmlFor="endTime">{COACH_SESSION_REGISTRATION_FORM_LABELS.END_TIME}</label>
+          <TimePicker id="endTime" value={selectedEndTime ?? null} onChange={handleSelectedEndTime} label={""} />
+        </>
+      )}
       <br />
       <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.FULL_NAME}</h3>
       <form onSubmit={handleSubmitRegistration}>
@@ -416,12 +438,21 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
           <h3>{COACH_SESSION_REGISTRATION_FORM_LABELS.SUMMARY}</h3>
           <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.TRAINING_GROUP}</label>
           <b>{sessionRegistrationData.sessionName}</b>
-          <br />
           <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.AGE_GROUP}</label>
           <b>{sessionRegistrationData.ageGroup}</b>
-          <br />
           <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
           <b>{sessionRegistrationData.dates ? sessionRegistrationData.dates.toLocaleDateString?.() || sessionRegistrationData.dates : '-'}</b>
+          {sessionRegistrationData.sessionName === 'VAPAA/SPARRI' && (
+            <>
+              <br />
+              <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.SESSION_TIME}</label>
+              <b>{
+                sessionRegistrationData.startTime && sessionRegistrationData.endTime
+                  ? `${datetimeToTimeString(sessionRegistrationData.startTime)} - ${datetimeToTimeString(sessionRegistrationData.endTime)}`
+                  : '-'
+              }</b>
+            </>
+          )}
           <br />
           <label>{COACH_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
           <b>{sessionRegistrationData.firstName}</b>
