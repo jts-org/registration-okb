@@ -48,3 +48,8 @@ export function isValidDate(d) {
 export function getLocalDate() {
   return new Date().toLocaleDateString('en-CA');
 }
+
+export function datetimeToTimeString(datetime) {
+  if (!(datetime instanceof Date) || isNaN(datetime)) return '';
+  return datetime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
