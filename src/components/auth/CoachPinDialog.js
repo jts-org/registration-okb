@@ -52,7 +52,8 @@ function CoachPinDialog({
   onClose, 
   isLoading = false,
   error: externalError,
-  initialMode = MODE.LOGIN 
+  initialMode = MODE.LOGIN,
+  showAlias = true // new prop: show alias field
 }) {
   const [mode, setMode] = useState(initialMode);
   const [firstName, setFirstName] = useState('');
@@ -61,6 +62,7 @@ function CoachPinDialog({
   const [confirmPin, setConfirmPin] = useState('');
   const [alias, setAlias] = useState('');
   const [localError, setLocalError] = useState('');
+  const [age, setAge] = useState('');
 
   const error = externalError || localError;
 
@@ -94,6 +96,12 @@ function CoachPinDialog({
       return;
     }
 
+    // Validate age for trainee registration
+    if (mode === MODE.REGISTER && !showAlias && (!age.trim() || isNaN(age) || parseInt(age, 10) < 1)) {
+      setLocalError('Ikä vaaditaan');
+      return;
+    }
+
     // Validate PIN format
     if (!validatePin(pin)) {
       setLocalError('pin_format');
@@ -106,7 +114,11 @@ function CoachPinDialog({
         setLocalError('pin_mismatch');
         return;
       }
-      onRegister(firstName.trim(), lastName.trim(), pin, alias.trim());
+      if (showAlias) {
+        onRegister(firstName.trim(), lastName.trim(), pin, alias.trim());
+      } else {
+        onRegister(firstName.trim(), lastName.trim(), pin, age.trim());
+      }
     } else {
       onLogin(pin);
     }
@@ -177,8 +189,8 @@ function CoachPinDialog({
             </>
           )}
           
-          {/* Alias (only in register mode) */}
-          {!isLoginMode && (
+          {/* Alias (only in register mode, only if showAlias) */}
+          {!isLoginMode && showAlias && (
             <>
               <label style={styles.label}>{DIALOG_LABELS.ALIAS}</label>
               <input
@@ -187,6 +199,22 @@ function CoachPinDialog({
                 onChange={(e) => setAlias(e.target.value)}
                 placeholder={DIALOG_LABELS.ALIAS_PLACEHOLDER}
                 style={styles.input}
+                disabled={isLoading}
+              />
+            </>
+          )}
+          {/* Age (only in trainee PIN registration, showAlias === false) */}
+          {!isLoginMode && !showAlias && (
+            <>
+              <label style={styles.label}>Ikä</label>
+              <input
+                type="number"
+                min="1"
+                max="17"
+                value={age}
+                onChange={e => setAge(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                placeholder="Syötä ikä (vain alle 18-vuotiaat)"
+                style={{ ...styles.input }}
                 disabled={isLoading}
               />
             </>

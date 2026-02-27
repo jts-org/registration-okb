@@ -8,6 +8,7 @@ import ToggleButtons from '../common/ToggleButtons';
 import CircularProgress from '@mui/material/CircularProgress';
 import useUpcomingTraineeSessions from '../../hooks/trainee/useUpcomingTraineeSessions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
+import CoachPinDialog from '../auth/CoachPinDialog';
 import Snackbar from '../common/Snackbar';
 import useTraineeRegistrations from '../../hooks/trainee/useTraineeRegistrations';
 import { NOTIFICATION_MESSAGES } from '../../constants';
@@ -178,6 +179,9 @@ function QuickTraineeRegistration() {
   const [lastName, setLastName] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [isRegistering, setIsRegistering] = useState(false);
+  const [pin, setPin] = useState('');
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [pinError, setPinError] = useState('');
 
   const { onNewTraineeRegistration } = useTraineeRegistrations();
 
@@ -192,55 +196,25 @@ function QuickTraineeRegistration() {
     setShowConfirmationDialog(true);
     setFirstName('');
     setLastName('');
+    setPin('');
+    setPinError('');
   }, []);
 
   // Handle registration confirmation
+  // Placeholder for PIN validation and registration logic
   const handleConfirmed = useCallback(async () => {
-    if (!selectedSession || !firstName.trim() || !lastName.trim()) return;
-    
-    setIsRegistering(true);
-    setShowConfirmationDialog(false);
-
-    try {
-      const registrationData = {
-        sessionName: selectedSession.sessionType,
-        ageGroup: 'Aikuiset', // Default age group for quick registration
-        dates: new Date(selectedSession.date),
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-      };
-
-      const result = await onNewTraineeRegistration(registrationData);
-      
-      if (result?.success) {
-        setSnackbar({
-          open: true,
-          message: result.exists ? NOTIFICATION_MESSAGES.REGISTRATION_EXISTS : NOTIFICATION_MESSAGES.REGISTRATION_SUCCESS,
-          severity: 'success',
-        });
-        // Refresh sessions to show updated registration count
-        await fetchSessions();
-      } else {
-        setSnackbar({
-          open: true,
-          message: NOTIFICATION_MESSAGES.REGISTRATION_ERROR,
-          severity: 'error',
-        });
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setSnackbar({
-        open: true,
-        message: NOTIFICATION_MESSAGES.REGISTRATION_ERROR,
-        severity: 'error',
-      });
-    } finally {
-      setIsRegistering(false);
-      setSelectedSession(null);
-      setFirstName('');
-      setLastName('');
+    if (!selectedSession) return;
+    if (!pin.trim()) {
+      setPinError('PIN vaaditaan');
+      return;
     }
-  }, [selectedSession, firstName, lastName, onNewTraineeRegistration, fetchSessions]);
+    // TODO: Validate PIN from backend, autofill name, show age if under 18
+    // If PIN not valid, show error
+    // If valid, proceed with registration as before
+    // For now, just close dialog
+    setShowConfirmationDialog(false);
+    setSnackbar({ open: true, message: 'PIN-tarkistus ei vielä toteutettu', severity: 'info' });
+  }, [selectedSession, pin]);
 
   // Handle registration cancellation
   const handleCancelled = useCallback(() => {
@@ -248,7 +222,21 @@ function QuickTraineeRegistration() {
     setSelectedSession(null);
     setFirstName('');
     setLastName('');
+    setPin('');
+    setPinError('');
   }, []);
+
+  // Open PIN registration dialog
+  const handleOpenPinDialog = () => {
+    setShowConfirmationDialog(false);
+    setShowPinDialog(true);
+  };
+
+  // Close PIN registration dialog
+  const handleClosePinDialog = () => {
+    setShowPinDialog(false);
+    setShowConfirmationDialog(true);
+  };
 
   const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
@@ -378,13 +366,30 @@ function QuickTraineeRegistration() {
               <p>{formatDateWithWeekday(selectedSession.date, selectedSession.weekday)}</p>
               <p>{selectedSession.startTime} – {selectedSession.endTime}</p>
               <br />
+              <label htmlFor="quick-pin">PIN-koodi:</label>
+              <input
+                type="password"
+                id="quick-pin"
+                value={pin}
+                onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Syötä PIN (4-6 numeroa)"
+                autoFocus
+              />
+              {pinError && <div style={{ color: '#c62828', marginTop: 4 }}>{pinError}</div>}
+              <div style={{ marginTop: 8 }}>
+                <button type="button" style={{ background: 'none', border: 'none', color: '#1976d2', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.9rem' }} onClick={handleOpenPinDialog}>
+                  Rekisteröi uusi PIN
+                </button>
+              </div>
+              {/* Name fields will be autofilled after PIN validation */}
+              <br />
               <label htmlFor="quick-fname">Etunimi:</label>
               <input 
                 type="text" 
                 id="quick-fname"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                autoFocus
+                disabled
               />
               <br />
               <label htmlFor="quick-lname">Sukunimi:</label>
@@ -393,11 +398,30 @@ function QuickTraineeRegistration() {
                 id="quick-lname"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                disabled
               />
+              {/* Age field will be shown if under 18 after PIN validation */}
             </div>
           }
           onConfirm={handleConfirmed}
           onCancel={handleCancelled}
+        />
+      )}
+
+      {/* PIN registration dialog for trainee (no alias) */}
+      {showPinDialog && (
+        <CoachPinDialog
+          open={showPinDialog}
+          onClose={handleClosePinDialog}
+          isLoading={false}
+          initialMode={CoachPinDialog.MODE.REGISTER}
+          showAlias={false}
+          // onRegister: custom handler for trainee PIN registration (no alias)
+          onRegister={(fname, lname, pinValue) => {
+            // TODO: Implement backend call for trainee PIN registration
+            setShowPinDialog(false);
+            setSnackbar({ open: true, message: 'PIN-rekisteröinti ei vielä toteutettu', severity: 'info' });
+          }}
         />
       )}
 
