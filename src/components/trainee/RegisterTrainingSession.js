@@ -188,9 +188,9 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
         <br />
       </div>
       <div>
-        {viewMode === VIEW_MODE.QUICK && (
-            <QuickTraineeRegistration />
-        )}
+      {viewMode === VIEW_MODE.QUICK && (
+          <QuickTraineeRegistration />
+      )}
       </div>
       <h2>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.TRAINEE_REGISTRATION_TITLE}</h2>
       <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_TRAINING_GROUP}</h3>

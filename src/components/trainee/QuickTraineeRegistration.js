@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useCallback, useState } from 'react';
+import ToggleButtons from '../common/ToggleButtons';
 import CircularProgress from '@mui/material/CircularProgress';
 import useUpcomingTraineeSessions from '../../hooks/trainee/useUpcomingTraineeSessions';
 import ConfirmationDialog from '../common/ConfirmationDialog';
@@ -14,6 +15,7 @@ import { NOTIFICATION_MESSAGES } from '../../constants';
 const WEEKDAY_NAMES = ['Ma', 'Ti', 'Ke', 'To', 'Pe', 'La', 'Su'];
 
 const LABELS = {
+  TRAINEE_REGISTRATION_TITLE: 'Harrastajan rekisteröityminen treenisessioon',
   TITLE: 'Tulevat harjoitussessiot',
   NO_SESSIONS: 'Ei tulevia sessioita aikataulussa',
   REGISTER: 'Ilmoittaudu',
@@ -282,9 +284,14 @@ function QuickTraineeRegistration() {
       <div style={styles.container}>
         <div style={styles.header}>
           <h3 style={styles.title}>{LABELS.TITLE}</h3>
-          <button style={styles.refreshButton} onClick={fetchSessions}>
-            {LABELS.REFRESH}
-          </button>
+          <ToggleButtons
+            onClick={fetchSessions}
+            buttonsGroup={[LABELS.REFRESH]}
+            single={true}
+            buttonRef={null}
+            disabled={isLoading}
+            sx={{ minWidth: '100px', padding: '6px 12px', fontSize: '0.85rem' }}
+          />
         </div>
         <div style={styles.noSessions}>
           {LABELS.NO_SESSIONS}
@@ -295,15 +302,17 @@ function QuickTraineeRegistration() {
 
   return (
     <div style={styles.container}>
+      <h2>{LABELS.TRAINEE_REGISTRATION_TITLE}</h2>
       <div style={styles.header}>
         <h3 style={styles.title}>{LABELS.TITLE}</h3>
-        <button 
-          style={styles.refreshButton} 
+        <ToggleButtons
           onClick={fetchSessions}
+          buttonsGroup={[isLoading ? '...' : LABELS.REFRESH]}
+          single={true}
+          buttonRef={null}
           disabled={isLoading}
-        >
-          {isLoading ? '...' : LABELS.REFRESH}
-        </button>
+          sx={{ minWidth: '100px', padding: '6px 12px', fontSize: '0.85rem' }}
+        />
       </div>
 
       {dates.map(date => {
@@ -337,7 +346,7 @@ function QuickTraineeRegistration() {
                       <div style={styles.sessionLocation}>{session.location}</div>
                     )}
                     <div style={styles.sessionCoaches}>
-                      Vetäjä: {hasDesignatedCoach ? session.coaches.join(', ') : '—'}
+                      {/* Vetäjä: {hasDesignatedCoach ? session.coaches.join(', ') : '—'} */}
                     </div>
                     {session.registeredCount !== undefined && session.registeredCount > 0 && (
                       <div style={styles.sessionRegisteredCount}>
@@ -345,13 +354,14 @@ function QuickTraineeRegistration() {
                       </div>
                     )}
                   </div>
-                  <button
-                    style={canRegister ? styles.registerButton : styles.disabledButton}
+                  <ToggleButtons
                     onClick={() => handleRegisterClick(session)}
+                    buttonsGroup={[isRegistering ? '...' : LABELS.REGISTER]}
+                    single={true}
+                    buttonRef={null}
                     disabled={!canRegister}
-                  >
-                    {isRegistering ? '...' : LABELS.REGISTER}
-                  </button>
+                    sx={{ minWidth: '100px', padding: '8px 16px', fontSize: '0.85rem' }}
+                  />
                 </div>
               );
             })}
