@@ -9,12 +9,30 @@ import ToggleButtons from "../common/ToggleButtons";
 import DatePicker from '../common/DatePicker';
 import ConfirmationDialog from '../common/ConfirmationDialog';
 import Snackbar from '../common/Snackbar';
+import QuickTraineeRegistration from './QuickTraineeRegistration';
 import useRegisterTrainingSessionForm from '../../hooks/trainee/useRegisterTrainingSessionForm';
 import useTraineeRegistrations from '../../hooks/trainee/useTraineeRegistrations';
 import { TAB_LABELS, SESSION_OPTIONS, AGE_GROUP_OPTIONS, TRAINEE_SESSION_REGISTRATION_FORM_LABELS, NOTIFICATION_MESSAGES } from '../../constants';
 import '../../App.css';
 
 const tabs = [TAB_LABELS.MAIN];
+
+const VIEW_MODE = {
+  QUICK: 'quick',
+  MANUAL: 'manual',
+};
+
+const switchButtonStyle = {
+  marginTop: '16px',
+  marginBottom: '16px',
+  padding: '10px 20px',
+  backgroundColor: '#f5f5f5',
+  border: '1px solid #ddd',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontSize: '0.9rem',
+  fontWeight: 500,
+};
 
 const ageInputStyles = {
   container: {
@@ -72,11 +90,15 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
   const handleFirstNameChange = e => setFirstName(e.target.value);
   const handleLastNameChange = e => setLastName(e.target.value);
   const tabButtonRef = useRef(null);
+  const [viewMode, setViewMode] = useState(VIEW_MODE.QUICK);
 
   const handleTabClick = (option) => {
     onSelect(option);
   };
 
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === VIEW_MODE.QUICK ? VIEW_MODE.MANUAL : VIEW_MODE.QUICK);
+  };
 
   const { onNewTraineeRegistration, isLoading: registrationsLoading } = useTraineeRegistrations();
 
@@ -164,7 +186,12 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
           disabled={false}
         />
         <br />
-      </div>      
+      </div>
+      <div>
+        {viewMode === VIEW_MODE.QUICK && (
+            <QuickTraineeRegistration />
+        )}
+      </div>
       <h2>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.TRAINEE_REGISTRATION_TITLE}</h2>
       <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_TRAINING_GROUP}</h3>
       <ToggleButtons
