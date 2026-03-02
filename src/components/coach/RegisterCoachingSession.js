@@ -117,8 +117,15 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
         message: 'Kirjautuminen onnistui!',
         severity: 'success',
       });
+    } else {
+      if (result?.message) {
+        if (result.message === 'no_match') {
+          setSnackbar({ open: true, message: 'PIN ei löydy. Varmista, että syötetty PIN on oikea tai rekisteröi uusi PIN.', severity: 'error' });
+        } else if (result.message === 'no_pin_provided') {
+          setSnackbar({ open: true, message: 'PIN vaaditaan. Syötä PIN tai rekisteröi uusi.', severity: 'error' });
+        }
+      }
     }
-    // Error is handled by the hook and displayed in dialog
   };
 
   const handlePinRegister = async (fName, lName, pin, alias) => {
@@ -130,8 +137,17 @@ function RegisterCoachingSession({ onSelect, coachingSessionOptions = COACHING_S
         message: 'PIN-koodi rekisteröity!',
         severity: 'success',
       });
+    } else {
+      if (result?.message) {
+        if (result.message === 'pin_in_use') {
+          setSnackbar({ open: true, message: 'PIN-koodi on jo käytössä. Valitse toinen PIN tai kirjaudu sisään.', severity: 'error' });
+        } else if (result.message === 'person_exists') {
+          setSnackbar({ open: true, message: 'Saman niminen henkilö on jo rekisteröinyt tämän PIN-koodin. Yritä uudestaan.', severity: 'error' });
+        } else {
+          setSnackbar({ open: true, message: 'Virhe PIN-koodin rekisteröinnissä.', severity: 'error' });
+        }
+      }
     }
-    // Error is handled by the hook and displayed in dialog
   };
 
   const handleLogout = () => {

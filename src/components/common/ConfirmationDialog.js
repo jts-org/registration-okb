@@ -3,9 +3,10 @@
  * All rights reserved.
  */
 
+import CircularProgress from '@mui/material/CircularProgress';
 import { TRAINEE_SESSION_REGISTRATION_FORM_LABELS } from "../../constants";
 
-function ConfirmationDialog({data, onConfirm, onCancel}) {
+function ConfirmationDialog({data, onConfirm, onCancel, confirmDisabled = false, confirmLoading = false}) {
   return (
     <div className="confirmation-dialog">
       <div style={styles.overlay}>
@@ -17,7 +18,8 @@ function ConfirmationDialog({data, onConfirm, onCancel}) {
             <button style={styles.cancelButton} onClick={onCancel}>
               {TRAINEE_SESSION_REGISTRATION_FORM_LABELS.CANCEL}
             </button>
-            <button style={styles.confirmButton} onClick={onConfirm}>
+            <button style={{ ...styles.confirmButton, ...(confirmDisabled || confirmLoading ? styles.disabledButton : {}), display: 'flex', alignItems: 'center', gap: 8 }} onClick={onConfirm} disabled={confirmDisabled || confirmLoading}>
+              {confirmLoading ? <CircularProgress size={18} style={{ color: 'white' }} /> : null}
               {TRAINEE_SESSION_REGISTRATION_FORM_LABELS.OK}
             </button>
           </div>
@@ -86,6 +88,12 @@ const styles = {
     borderRadius: '10px',
     cursor: 'pointer',
     transition: 'all 0.25s ease',
+  },
+  disabledButton: {
+    background: '#555',
+    color: '#ccc',
+    cursor: 'not-allowed',
+    boxShadow: 'none',
   },
 };
 

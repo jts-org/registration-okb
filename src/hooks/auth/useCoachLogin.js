@@ -70,32 +70,27 @@ function useCoachLogin() {
         alias: alias.trim()
       });
 
-      if (response.id === 'exists') {
-        setError('exists');
-        return { success: false, message: 'exists' };
+      let result = {};
+      if (response?.result === 'success' && response.data?.id) {
+          // Auto-login after registration
+          const coachData = {
+            id: response.data.id,
+            firstName: response.data.firstName || firstName.trim(),
+            lastName: response.data.lastName || lastName.trim(),
+            alias: response.data.alias || alias.trim()
+          };
+          setCoach(coachData);
+          setIsAuthenticated(true);
+          saveSession(coachData);
+          result = { success: true, message: 'registered', coach: coachData };
+      } else if (response.data?.message) {
+          setError(response.data.message);
+          result = { success: false, message: response.data.message };
+      } else {
+          setError('registration_failed');
+          result = { success: false, message: 'registration_failed' };
       }
-
-      if (response.id === 'pin_taken') {
-        setError('pin_taken');
-        return { success: false, message: 'pin_taken' };
-      }
-
-      if (response.result === 'success' || response.id) {
-        // Auto-login after registration
-        const coachData = {
-          id: response.id,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          alias: alias.trim()
-        };
-        setCoach(coachData);
-        setIsAuthenticated(true);
-        saveSession(coachData);
-        return { success: true, message: 'registered', coach: coachData };
-      }
-
-      setError('registration_failed');
-      return { success: false, message: 'registration_failed' };
+      return result;
     } catch (err) {
       console.error('Registration error:', err);
       setError('registration_failed');
@@ -118,17 +113,17 @@ function useCoachLogin() {
     try {
       const response = await verifyCoachPin(pin.toString());
 
-      if (response.result === 'success' && response.coach) {
-        setCoach(response.coach);
+      if (response?.result === 'success' && response.data?.coach) {
+        setCoach(response.data.coach);
         setIsAuthenticated(true);
         if (remember) {
-          saveSession(response.coach);
+          saveSession(response.data.coach);
         }
-        return { success: true, message: 'verified', coach: response.coach };
-      }
-
+        return { success: true, message: 'verified', coach: response.data.coach };
+      } 
+  
       // Handle specific error messages
-      const errorMessage = response.message || 'verification_failed';
+      const errorMessage = response?.data?.message || 'verification_failed';
       setError(errorMessage);
       return { success: false, message: errorMessage };
     } catch (err) {

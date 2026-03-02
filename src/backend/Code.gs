@@ -11,6 +11,7 @@ const sessionsSheetName = "sessions";
 const campsSheetName = "camps";
 const coachesExperienceSheetName = "coaches_experience";
 const coachLoginSheetName = "coach_login";
+const traineeLoginSheetName = "trainee_login";
 const weeklyScheduleSheetName = "weekly_schedule";
 
 function doPost(e) {
@@ -23,7 +24,8 @@ function doPost(e) {
   logToSheet(`doPost - Role: ${role}, Operation: ${operation}, holder: ` + JSON.stringify(holder));
 
   let id;
-  let result = "success";
+  let result = 'success';
+  let data = null;
 
   try {
     if (role === "trainee") {
@@ -31,6 +33,15 @@ function doPost(e) {
         id = addTrainee(holder);
       } else if (operation === "update") {
         id = updateTrainee(holder);
+      }
+    } else if (role === "trainee_login") {
+      if (operation === "register") {
+        data = registerTraineePin(holder);
+      } else if (operation === "verify") {
+        data = verifyTraineePin(holder);
+      }
+      if (!data.success) {
+          result = 'failure';
       }
     } else if (role === "coach") {
       if (operation === "add") {
@@ -60,13 +71,9 @@ function doPost(e) {
       }
     } else if (role === "coach_login") {
       if (operation === "register") {
-        id = registerCoachLogin(holder);
+        data = registerCoachPin(holder);
       } else if (operation === "verify") {
-        // Special case: verify returns coach data, not just id
-        const verifyResult = verifyCoachPin(holder);
-        return ContentService
-          .createTextOutput(JSON.stringify(verifyResult))
-          .setMimeType(ContentService.MimeType.JSON);
+        data = verifyCoachPin(holder);
       } else if (operation === "update") {
         id = updateCoachLogin(holder);
       } else if (operation === "delete") {
@@ -82,8 +89,11 @@ function doPost(e) {
 
   const jsonResponse = JSON.stringify({
     result: result,
-    id: id || null
+    id: id || null,
+    data: data || null
   });
+
+  logToSheet(`doPost - Role: ${role}, Operation: ${operation}, response: ${jsonResponse}`);
 
   if (role === "coach" && id != null) {
     generateCoachMonthlyStats();
@@ -188,10 +198,24 @@ function getSpreadsheet() {
 }
 
 /**
+ * Get sheet by name
+ * @param sheetName sheet's name
+ * @returns sheet or null if not found
+ */
+function getSheetByName(sheetName) {
+  return getSpreadsheet().getSheetByName(sheetName);
+}
+
+/**
  * Helper to get sheet data (excluding header row)
+ * @param sheetName sheet's name
+ * @returns sheet data or throws exception if sheet does not exist
  */
 function getSheetData(sheetName) {
-  const sheet = getSpreadsheet().getSheetByName(sheetName);
+  const sheet = getSheetByName(sheetName);
+  if (!sheet) {
+    throw new Error(`Sheet not found: ${sheetName}`);
+  }
   return sheet.getDataRange().getValues().slice(1);
 }
 
@@ -201,6 +225,14 @@ function getSettings() {
 
 function getTraineeRegistrations() {
   return getSheetData(traineesSheetName);
+}
+
+function getTraineeLogins() {
+  return getSheetData(traineeLoginSheetName);
+}
+
+function getCoachLogins() { 
+  return getSheetData(coachLoginSheetName);
 }
 
 function getCoachRegistrations() {
@@ -215,41 +247,118 @@ function getCamps() {
   return normalizeDatesInArray(getSheetData(campsSheetName));
 }
 
+function createSheetIfNotExists(sheetName, headers) {
+  const ss = getSpreadsheet();
+  let sheet = getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    SpreadsheetApp.flush();
+  }
+  return sheet;
+}
+
+// ============================================
+// TRAINEE LOGIN FUNCTIONS
+// ============================================
+
+/**
+ * Register new trainee login PIN
+ * @param holder { firstName, lastName, pin, age }
+ * @returns {Object} - { success: boolean, id: number|null, firstName: string|null, lastName: string|null, age: string|null, message: string|null }
+ */
+function registerTraineePin(holder) {
+  logToSheet(`registerTraineePin - holder: ` + JSON.stringify(holder));
+  const firstName = (holder.firstName || '').trim();
+  const lastName = (holder.lastName || '').trim();
+  const pin = (holder.pin || '').toString();
+  const age = holder.age || '';
+  try {
+    // Check trainee logins first to prevent duplicate names or PINs among trainees
+    const traineeData = getTraineeLogins();
+    if (doPersonAlreadyExists(traineeData, firstName, lastName)) {
+      return { success: false, message: 'person_exists' };
+    }
+    if (isPinInUse(traineeData, 4, pin)) {
+      return { success: false, message: 'pin_in_use' };
+    }
+
+    // Check coach logins to prevent duplicate names or PINs across both trainee and coach logins
+    const coachData = getCoachLogins();
+    if (doPersonAlreadyExists(coachData, firstName, lastName)) {
+      return { success: false, message: 'person_exists' };
+    }
+    if (isPinInUse(coachData, 4, pin)) {
+      return { success: false, message: 'pin_in_use' };
+    }    
+
+    // Generate new ID
+    const sheet = getSheetByName(traineeLoginSheetName);
+    const lastRow = sheet.getLastRow();
+    const newId = lastRow > 1 ? Math.max(...traineeData.slice(1).map(r => r[0] || 0)) + 1 : 1;
+    const timestamp = new Date().toISOString();
+    sheet.appendRow([newId, firstName, lastName, age, pin, timestamp]);
+
+    return { success: true, id: newId, firstName, lastName, age };
+  } catch (err) {
+    Logger.log("Error in registerTraineePin: " + err);
+    return { success: false, message: err.message || 'error' };
+  }
+}
+
+/**
+ * Verify trainee PIN and return trainee data
+ * @param holder { pin }
+ * @returns {Object} - { success: boolean, trainee: { id, firstName, lastName, age } | null, message: string }
+ */
+function verifyTraineePin(holder) {
+  const pin = (holder.pin || '').toString();
+  if (!pin) {
+    return { success: false, trainee: null, message: 'no_pin_provided' };
+  }
+
+  const traineeData = getTraineeLogins();
+  const coachData = getCoachLogins();
+  const combinedData = traineeData.concat(coachData);
+
+  for (let i = 0; i < combinedData.length; i++) {
+    const rowPin = (combinedData[i][4] || '').toString();
+    if (rowPin === pin) {
+
+      // column index 3 is age in trainee logins, and alias in coach logins - only validate if it's from trainee logins
+      const value = combinedData[i][3];
+      let column3Value = '';
+      if (value !== '' && !isNaN(value) && Number(value) >= 1 && Number(value) <= 17) {
+        // It's a valid age number
+        column3Value = value;
+      }
+
+      return {
+        success: true,
+        trainee: {
+          id: combinedData[i][0],
+          firstName: combinedData[i][1],
+          lastName: combinedData[i][2],
+          age: column3Value
+        },
+        message: 'verified'
+      };
+    }
+  }
+  // No matching PIN found in either trainee or coach logins
+  return { success: false, trainee: null, message: 'no_match' };
+}
+
 // ============================================
 // COACH LOGIN FUNCTIONS
 // ============================================
 
 /**
- * Get all coach login records
- * Returns array of [id, firstName, lastName, alias, createdAt]
- * PIN is intentionally excluded for security
- */
-function getCoachLogins() {
-  const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName(coachLoginSheetName);
-  
-  if (!sheet) {
-    return [];
-  }
-  
-  const data = sheet.getDataRange().getValues().slice(1); // Skip header
-  // Return without PIN (column index 4)
-  return data.map(row => [row[0], row[1], row[2], row[3], row[5]]);
-}
-
-/**
  * Get a map of coach names to their aliases
  * Returns { "FirstName LastName": "Alias" } for coaches who have an alias set
  */
-function getCoachAliasMap() {
-  const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName(coachLoginSheetName);
-  
-  if (!sheet) {
-    return {};
-  }
-  
-  const data = sheet.getDataRange().getValues().slice(1); // Skip header
+function getCoachAliasMap() {  
+  const data = getCoachLogins();
   const aliasMap = {};
   
   data.forEach(row => {
@@ -267,81 +376,92 @@ function getCoachAliasMap() {
 }
 
 /**
- * Register a new coach login with PIN
+ * Register a new coach login PIN
  * @param {Object} holder - { firstName, lastName, alias, pin }
- * @returns {number|string} - ID of created record or 'exists' if already registered
+ * @returns {Object} - { success: boolean, id: number | null, firstName: string, lastName: string, alias: string, pin: string, message: string }
  */
-function registerCoachLogin(holder) {
-  const ss = getSpreadsheet();
-  let sheet = ss.getSheetByName(coachLoginSheetName);
-  
-  // Create sheet if it doesn't exist
-  if (!sheet) {
-    sheet = ss.insertSheet(coachLoginSheetName);
-    sheet.getRange(1, 1, 1, 6).setValues([['id', 'firstName', 'lastName', 'alias', 'pin', 'createdAt']]);
-    SpreadsheetApp.flush();
-  }
-  
+function registerCoachPin(holder) {
+  logToSheet(`registerCoachPin - holder: ` + JSON.stringify(holder));
   const firstName = (holder.firstName || '').trim();
   const lastName = (holder.lastName || '').trim();
   const alias = (holder.alias || '').trim();
   const pin = (holder.pin || '').toString();
   
-  // Check if coach already exists
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][1].toLowerCase() === firstName.toLowerCase() && 
-        data[i][2].toLowerCase() === lastName.toLowerCase()) {
-      return 'exists';
+  try {
+    // Check if coach already exists or pin in use
+    const coachData = getCoachLogins();
+    if (doPersonAlreadyExists(coachData, firstName, lastName)) {
+      return { success: false, message: 'person_exists' };
     }
+    if (isPinInUse(coachData, 4, pin)) {
+      return { success: false, message: 'pin_in_use' };
+    }
+
+    // check if trainee with same name or pin already exists
+    const traineeData = getTraineeLogins();
+    if (doPersonAlreadyExists(traineeData, firstName, lastName)) {
+      return { success: false, message: 'person_exists' };
+    }
+    if (isPinInUse(traineeData, 4, pin)) {
+      return { success: false, message: 'pin_in_use' };
+    }
+      
+    // Generate new ID
+    const coachSheet = getSheetByName(coachLoginSheetName);
+    const lastRow = coachSheet.getLastRow();
+    const newId = lastRow > 1 ? Math.max(...coachData.slice(1).map(r => r[0] || 0)) + 1 : 1;
+    const timestamp = new Date().toISOString();
+    coachSheet.appendRow([newId, firstName, lastName, alias, pin, timestamp]);
+    
+    return { success: true, id: newId, firstName, lastName, alias, pin };
+  } catch (err) {
+    Logger.log("Error in registerCoachPin: " + err);
+    return { success: false, message: err.message || 'error' };
   }
-  
-  // Check if PIN is already in use by another coach
+}
+
+function isPinInUse(data, columnIndex, pin) {
   for (let i = 1; i < data.length; i++) {
-    const existingPin = (data[i][4] || '').toString();
+    const existingPin = (data[i][columnIndex] || '').toString();
     if (existingPin === pin) {
-      return 'pin_taken';
+      return true;
     }
   }
-  
-  // Generate new ID
-  const lastRow = sheet.getLastRow();
-  const newId = lastRow > 1 ? Math.max(...data.slice(1).map(r => r[0] || 0)) + 1 : 1;
-  
-  // Add new coach login
-  const timestamp = new Date().toISOString();
-  sheet.appendRow([newId, firstName, lastName, alias, pin, timestamp]);
-  
-  return newId;
+  return false;
+}
+
+function doPersonAlreadyExists(data, firstName, lastName) {
+  for (let i = 1; i < data.length; i++) {
+    if (
+      (data[i][1] || '').toLowerCase() === (firstName || '').toLowerCase() &&
+      (data[i][2] || '').toLowerCase() === (lastName || '').toLowerCase()
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
  * Verify coach PIN and return coach data
  * @param {Object} holder - { pin }
- * @returns {Object} - { result: 'success'|'error', coach: {...} | null, message: string }
+ * @returns {Object} - { success: boolean, coach: {...} | null, message: string }
  */
 function verifyCoachPin(holder) {
-  const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName(coachLoginSheetName);
-  
-  if (!sheet) {
-    return { result: 'error', coach: null, message: 'not_found' };
-  }
-  
   const pin = (holder.pin || '').toString();
   
   if (!pin) {
-    return { result: 'error', coach: null, message: 'wrong_pin' };
+    return { success: false, coach: null, message: 'no_pin_provided' };
   }
   
-  const data = sheet.getDataRange().getValues();
+  const data = getCoachLogins();
   
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     const rowPin = (data[i][4] || '').toString();
     
     if (rowPin === pin) {
       return {
-        result: 'success',
+        success: true,
         coach: {
           id: data[i][0],
           firstName: data[i][1],
@@ -353,7 +473,7 @@ function verifyCoachPin(holder) {
     }
   }
   
-  return { result: 'error', coach: null, message: 'wrong_pin' };
+  return { success: false, coach: null, message: 'no_match' };
 }
 
 /**
@@ -790,7 +910,7 @@ function updateCoachesExperience() {
 }
 
 function addTrainee(holder) {
-  const sheet = getSpreadsheet().getSheetByName(traineesSheetName);
+  const sheet = getSheetByName(traineesSheetName);
   const formattedDates = formatDates(holder.dates);
   
   // Get the last ID from column A to ensure unique incrementing IDs
@@ -820,7 +940,7 @@ function addTrainee(holder) {
 }
 
 function addCoach(holder) {
-  const sheet = getSpreadsheet().getSheetByName(coachesSheetName);
+  const sheet = getSheetByName(coachesSheetName);
   const formattedDates = formatDates(holder.dates);
   
   // Get the last ID from column A to ensure unique incrementing IDs
@@ -867,7 +987,7 @@ function isoToFinnishTime(isoString) {
  * @param {Array} holder.days - Array of {date: 'YYYY-MM-DD', sessions: number}
  */
 function addCamp(holder) {
-  const sheet = getSpreadsheet().getSheetByName(campsSheetName);
+  const sheet = getSheetByName(campsSheetName);
   
   // Get the last ID from column A to ensure unique incrementing IDs
   const lastRow = sheet.getLastRow();

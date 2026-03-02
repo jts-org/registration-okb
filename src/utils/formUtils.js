@@ -16,7 +16,6 @@ export function clearInputFields(ids) {
 }
 
 export function copyTimePart(sourceDate, targetDate) {
-  console.log('copyTimePart: source', sourceDate, 'target', targetDate);
   if (!sourceDate || !targetDate) return null;
   const newDate = new Date(sourceDate);
   newDate.setHours(targetDate.getHours());

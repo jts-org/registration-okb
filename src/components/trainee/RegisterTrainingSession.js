@@ -22,17 +22,10 @@ const VIEW_MODE = {
   MANUAL: 'manual',
 };
 
-const switchButtonStyle = {
-  marginTop: '16px',
-  marginBottom: '16px',
-  padding: '10px 20px',
-  backgroundColor: '#f5f5f5',
-  border: '1px solid #ddd',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  fontSize: '0.9rem',
-  fontWeight: 500,
-};
+const MODE_OPTIONS = [
+  { value: VIEW_MODE.QUICK, label: 'Pikarekisteröinti' },
+  { value: VIEW_MODE.MANUAL, label: 'Manuaalinen' }
+];
 
 const ageInputStyles = {
   container: {
@@ -90,14 +83,14 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
   const handleFirstNameChange = e => setFirstName(e.target.value);
   const handleLastNameChange = e => setLastName(e.target.value);
   const tabButtonRef = useRef(null);
-  const [viewMode, setViewMode] = useState(VIEW_MODE.QUICK);
+  const [viewMode, setViewMode] = useState(MODE_OPTIONS[0]);
 
   const handleTabClick = (option) => {
     onSelect(option);
   };
 
   const toggleViewMode = () => {
-    setViewMode(prev => prev === VIEW_MODE.QUICK ? VIEW_MODE.MANUAL : VIEW_MODE.QUICK);
+    setViewMode(prev => prev === MODE_OPTIONS[0] ? MODE_OPTIONS[1] : MODE_OPTIONS[0]);
   };
 
   const { onNewTraineeRegistration, isLoading: registrationsLoading } = useTraineeRegistrations();
@@ -188,90 +181,106 @@ function RegisterTrainingSession({ onSelect, sessionOptions = SESSION_OPTIONS })
         <br />
       </div>
       <div>
-      {viewMode === VIEW_MODE.QUICK && (
+        <h2>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.TRAINEE_REGISTRATION_TITLE}</h2>
+      </div>
+      {/* Registration Mode Toggle */}
+      <div>
+          <ToggleButtons
+            onClick={toggleViewMode}
+            buttonsGroup={[MODE_OPTIONS[0].label, MODE_OPTIONS[1].label]}
+            buttonRef={null}
+            selected={viewMode.label}
+          />
+          <br />
+      </div>
+      <div>
+      {viewMode === MODE_OPTIONS[0] && (
           <QuickTraineeRegistration />
       )}
       </div>
-      <h2>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.TRAINEE_REGISTRATION_TITLE}</h2>
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_TRAINING_GROUP}</h3>
-      <ToggleButtons
-        onClick={handleSessionButtonClicked}
-        buttonsGroup={sessionOptions}
-        buttonRef={sessionButtonRef}
-        selected={selectedSession}
-      />
-      <br />
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_AGE_GROUP}</h3>
-      <ToggleButtons
-        onClick={handleAgeGroupButtonClicked}
-        buttonsGroup={AGE_GROUP_OPTIONS}
-        buttonRef={ageGroupButtonRef}
-        selected={selectedAgeGroup}
-      />
-      {isMinor && (
-        <div style={ageInputStyles.container}>
-          <label htmlFor="age" style={ageInputStyles.label}>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.AGE}</label>
-          <div style={ageInputStyles.inputWrapper}>
-            <button 
-              type="button"
-              style={ageInputStyles.spinButton}
-              onClick={() => handleAgeChange(Math.max(1, (parseInt(selectedAge) || 1) - 1).toString())}
-            >
-              −
-            </button>
-            <input
-              type="number"
-              id="age"
-              name="age"
-              min="1"
-              max="17"
-              value={selectedAge}
-              onChange={(e) => handleAgeChange(e.target.value)}
-              placeholder="—"
-              style={ageInputStyles.input}
+      {viewMode === MODE_OPTIONS[1] && (
+        <div>
+          <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_TRAINING_GROUP}</h3>
+          <ToggleButtons
+            onClick={handleSessionButtonClicked}
+            buttonsGroup={sessionOptions}
+            buttonRef={sessionButtonRef}
+            selected={selectedSession}
+          />
+          <br />
+          <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SELECT_AGE_GROUP}</h3>
+          <ToggleButtons
+            onClick={handleAgeGroupButtonClicked}
+            buttonsGroup={AGE_GROUP_OPTIONS}
+            buttonRef={ageGroupButtonRef}
+            selected={selectedAgeGroup}
+          />
+          {isMinor && (
+            <div style={ageInputStyles.container}>
+              <label htmlFor="age" style={ageInputStyles.label}>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.AGE}</label>
+              <div style={ageInputStyles.inputWrapper}>
+                <button 
+                  type="button"
+                  style={ageInputStyles.spinButton}
+                  onClick={() => handleAgeChange(Math.max(1, (parseInt(selectedAge) || 1) - 1).toString())}
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  min="1"
+                  max="17"
+                  value={selectedAge}
+                  onChange={(e) => handleAgeChange(e.target.value)}
+                  placeholder="—"
+                  style={ageInputStyles.input}
+                />
+                <button 
+                  type="button"
+                  style={ageInputStyles.spinButton}
+                  onClick={() => handleAgeChange(Math.min(17, (parseInt(selectedAge) || 0) + 1).toString())}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
+          <br />
+          <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SESSION_DATE}</h3>
+          <label htmlFor="date">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
+          <DatePicker
+            onDateChange={handleDateSelected}
+            selectedDate={selectedDate}
+          />
+          <br />
+          <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FULL_NAME}</h3>
+          <form onSubmit={handleSubmitRegistration}>
+            <label htmlFor="fname">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
+            <input type="text" id="fname" name="fname" required onChange={handleFirstNameChange} />
+            <br />
+            <label htmlFor="lname">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.LAST_NAME}</label>
+            <input type="text" id="lname" name="lname" required onChange={handleLastNameChange} />
+            <br /><br />
+            <br /><br />
+            <ToggleButtons
+              onClick={() => {}}
+              buttonsGroup={[TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SUBMIT]}
+              single={true}
+              buttonRef={null}
+              sx={{
+                padding: '8px 16px',
+                backgroundColor: '#e0e0e0',
+                color: '#000',
+                border: '2px solid #007bff',
+                borderRadius: '4px',
+              }}
+              disabled={!isFormValid}
             />
-            <button 
-              type="button"
-              style={ageInputStyles.spinButton}
-              onClick={() => handleAgeChange(Math.min(17, (parseInt(selectedAge) || 0) + 1).toString())}
-            >
-              +
-            </button>
-          </div>
+          </form>
         </div>
       )}
-      <br />
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SESSION_DATE}</h3>
-      <label htmlFor="date">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.DATE_LABEL}</label>
-      <DatePicker
-        onDateChange={handleDateSelected}
-        selectedDate={selectedDate}
-      />
-      <br />
-      <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FULL_NAME}</h3>
-      <form onSubmit={handleSubmitRegistration}>
-        <label htmlFor="fname">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.FIRST_NAME}</label>
-        <input type="text" id="fname" name="fname" required onChange={handleFirstNameChange} />
-        <br />
-        <label htmlFor="lname">{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.LAST_NAME}</label>
-        <input type="text" id="lname" name="lname" required onChange={handleLastNameChange} />
-        <br /><br />
-        <br /><br />
-        <ToggleButtons
-          onClick={() => {}}
-          buttonsGroup={[TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SUBMIT]}
-          single={true}
-          buttonRef={null}
-          sx={{
-            padding: '8px 16px',
-            backgroundColor: '#e0e0e0',
-            color: '#000',
-            border: '2px solid #007bff',
-            borderRadius: '4px',
-          }}
-          disabled={!isFormValid}
-        />
-      </form>
       {showConfirmationDialog && <ConfirmationDialog data={
         <div>
           <h3>{TRAINEE_SESSION_REGISTRATION_FORM_LABELS.SUMMARY}</h3>

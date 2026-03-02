@@ -12,8 +12,6 @@ if (!DEPLOYMENT_ID) {
 
 const API_URL = `${API_BASE_URL}${DEPLOYMENT_ID}/exec`;
 
-console.log("API_URL: ", API_URL);
-
 // Simple in-memory cache with expiry
 const cache = new Map();
 const CACHE_TTL = 60000; // 1 minute cache
@@ -376,4 +374,47 @@ const deleteCoachLogin = async (coachId) => {
   }
 };
 
-export { getSettings, getRegistrations, getSessions, getCamps, getUpcomingSessions, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, removeCoachFromSession,getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin };
+// ============================================
+// TRAINEE LOGIN API FUNCTIONS
+// ============================================
+
+/**
+ * Register a new trainee with PIN
+ * @param {Object} traineeData - { firstName, lastName, pin, age }
+ * @returns {Object} - { result, id }
+ */
+const registerTraineePin = async (traineeData) => {
+  try {
+    const payload = {
+      path: { role: 'trainee_login', operation: 'register' },
+      data: traineeData
+    };
+    const response = await post(payload);
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error registering trainee PIN:', error);
+    throw error;
+  }
+};
+
+/**
+ * Verify trainee PIN and get trainee data
+ * @param {string} pin 
+ * @returns {Object} - { result, trainee, message }
+ */
+const verifyTraineePin = async (pin) => {
+  try {
+    const payload = {
+      path: { role: 'trainee_login', operation: 'verify' },
+      data: { pin }
+    };
+    const response = await post(payload);
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export { getSettings, getRegistrations, getSessions, getCamps, getUpcomingSessions, getSessionsAndCamps, prefetchData, postRegistration, addCamp, updateCamp, deleteCamp, addSession, updateSession, deleteSession, removeCoachFromSession,getCoachesExperience, getCoachLogins, registerCoachPin, verifyCoachPin, updateCoachLogin, deleteCoachLogin, registerTraineePin, verifyTraineePin };

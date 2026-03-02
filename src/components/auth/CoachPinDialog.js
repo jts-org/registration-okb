@@ -97,9 +97,12 @@ function CoachPinDialog({
     }
 
     // Validate age for trainee registration
-    if (mode === MODE.REGISTER && !showAlias && (!age.trim() || isNaN(age) || parseInt(age, 10) < 1)) {
-      setLocalError('Ikä vaaditaan');
-      return;
+    if (mode !== MODE.REGISTER && !showAlias && age !== '') {
+      const parsedAge = parseInt(age, 10);
+      if (parsedAge < 1 || parsedAge > 17) {
+        setLocalError('Alle 18 vuotiaan ikä täytyy olla välillä 1-17');
+        return;
+      }
     }
 
     // Validate PIN format
